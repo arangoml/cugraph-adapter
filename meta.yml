@@ -1,22 +1,42 @@
 package:
-  name:
-  version:
+  name: adbcug_adapter
+  version: {{ version }}
 
 source:
-  git_rev:
-  git_url:
+  git_url: https://github.com/arangoml/cugraph-adapter
+
+build:
 
 requirements:
   build:
-    - python
-    - setuptools
-
+    - python>=3.7,<3.9
+    - python-arango>=7.3.1
+    - setuptools>=42
+    - setuptools_scm[toml]>=3.4
+    - black
+    - flake8>=3.8.0
+    - mypy>=0.790
+    - pytest>=6.0.0
+    - pytest-cov>=2.0.0
+    - coveralls>=3.3.1
+    - types-setuptools
+    - types-requests
   run:
-    - python
+    - python>=3.7,<3.9
+    - python-arango>=7.3.1
+    - cugraph>=21.12.00
+    - cudf>=21.12.02
+    - setuptools>=42
+    - setuptools_scm[toml]>=3.4
 
-test:
-  imports:
+tests:                                 
+  requirements:                        
     -
+  imports:                             
+    -                          
 
 about:
-  home:
+  home: https://github.com/arangoml/cugraph-adapter
+  license: Apache-2.0
+  license_file: ./LICENSE
+  summary: Convert ArangoDB graphs to RAPIDS cuGraph. 
