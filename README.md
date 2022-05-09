@@ -22,7 +22,9 @@ While offering a similar API and set of graph algorithms to NetworkX, RAPIDS cuG
 
 ## Installation
 
-**TODO**
+```
+conda install -c arangodb adbcug_adapter
+```
 
 ##  Quickstart
 
@@ -57,9 +59,9 @@ cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
 )
 ```
 
-##  Development & Testing
+##  Development & Testing (TODO - Rework as a conda environment)
 
-Prerequisite: `arangorestore`
+Prerequisite: `arangorestore`, `conda`, `NVidia CUDA-enabled GPU`
 
 1. `git clone https://github.com/arangoml/cugraph-adapter.git`
 2. `cd cugraph-adapter`
