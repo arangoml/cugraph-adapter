@@ -12,7 +12,7 @@ requirements:
   build:
     - python>=3.7,<3.9
     - cugraph>=21.12.00
-    - cudf>=21.12.02
+    - cudatoolkit>=11.2
     - python-arango>=7.3.1
     - setuptools>=42
     - setuptools_scm[toml]>=3.4
@@ -23,11 +23,10 @@ requirements:
     - pytest-cov>=2.0.0
     - coveralls>=3.3.1
     - types-setuptools
-    - types-requests
   run:
     - python>=3.7,<3.9
     - cugraph>=21.12.00
-    - cudf>=21.12.02
+    - cudatoolkit>=11.2
     - python-arango>=7.3.1
     - setuptools>=42
     - setuptools_scm[toml]>=3.4
