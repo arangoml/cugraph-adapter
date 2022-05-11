@@ -45,14 +45,12 @@ jobs:
           source ~/anaconda3/etc/profile.d/conda.sh
           conda activate ${{ matrix.python }}
           pip install .[dev]
-      - name: check black version
+      - name: Run black
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda activate ${{ matrix.python }}
           black --version
-          black --check --verbose --diff ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
-      - name: Run black
-        run: black --check --verbose --diff ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
+          black --check --verbose --diff --color ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run flake8
         run: flake8 ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run isort
