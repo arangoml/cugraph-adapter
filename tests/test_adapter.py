@@ -23,6 +23,7 @@ def test_validate_attributes() -> None:
     with pytest.raises(ValueError):
         ADBCUG_Adapter(bad_connection)
 
+
 @pytest.mark.parametrize(
     "adapter, name, metagraph",
     [
@@ -75,6 +76,7 @@ def test_adb_to_cg(
     cg_g = adapter.arangodb_to_cugraph(name, metagraph)
     assert_cugraph_data(cg_g, metagraph, True)
 
+
 pytest.mark.parametrize(
     "adapter, name, v_cols, e_cols",
     [
@@ -86,6 +88,8 @@ pytest.mark.parametrize(
         )
     ],
 )
+
+
 def test_adb_collections_to_cg(
     adapter: ADBCUG_Adapter, name: str, v_cols: Set[str], e_cols: Set[str]
 ) -> None:

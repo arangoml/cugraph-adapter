@@ -24,7 +24,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
     """
 
     def __init__(
-        self, conn: Json,
+        self,
+        conn: Json,
     ):
         self.__validate_attributes("connection", set(conn), self.CONNECTION_ATRIBS)
 
@@ -102,9 +103,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         srcs = [s for (s, _) in cg_edges]
         dsts = [d for (_, d) in cg_edges]
         cg_graph = cuGraphMultiGraph(directed=True)
-        cg_graph.from_cudf_edgelist(
-            DataFrame({"source": srcs, "destination": dsts})
-        )
+        cg_graph.from_cudf_edgelist(DataFrame({"source": srcs, "destination": dsts}))
 
         print(f"cuGraph: {name} created")
         return cg_graph
@@ -134,9 +133,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             "edgeCollections": {col: set() for col in e_cols},
         }
 
-        return self.arangodb_to_cugraph(
-            name, metagraph, is_keep=True, **query_options
-        )
+        return self.arangodb_to_cugraph(name, metagraph, is_keep=True, **query_options)
 
     def arangodb_graph_to_cugraph(
         self, name: str, **query_options: Any

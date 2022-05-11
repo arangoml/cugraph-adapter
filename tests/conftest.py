@@ -21,6 +21,7 @@ con: Json
 adbcug_adapter: ADBCUG_Adapter
 db: StandardDatabase
 
+
 def pytest_sessionstart() -> None:
     global con
     con = get_oasis_crendetials()
@@ -62,6 +63,7 @@ def pytest_sessionstart() -> None:
         ],
     )
 
+
 def get_oasis_crendetials() -> Json:
     url = "https://tutorials.arangodb.cloud:8529/_db/_system/tutorialDB/tutorialDB"
     request = post(url, data=json.dumps("{}"))
@@ -71,6 +73,7 @@ def get_oasis_crendetials() -> Json:
     creds: Json = json.loads(request.text)
     return creds
 
+
 def print_connection_details(con: Json) -> None:
     print("----------------------------------------")
     print("https://{}:{}".format(con["hostname"], con["port"]))
@@ -78,6 +81,7 @@ def print_connection_details(con: Json) -> None:
     print("Password: " + con["password"])
     print("Database: " + con["dbName"])
     print("----------------------------------------")
+
 
 def arango_restore(con: Json, path_to_data: str) -> None:
     restore_prefix = "./assets/" if os.getenv("GITHUB_ACTIONS") else ""

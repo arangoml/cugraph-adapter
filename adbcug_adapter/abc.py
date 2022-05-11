@@ -24,7 +24,11 @@ class Abstract_ADBCUG_Adapter(ABC):
         raise NotImplementedError  # pragma: no cover
 
     def arangodb_collections_to_cugraph(
-        self, name: str, v_cols: Set[str], e_cols: Set[str], **query_options: Any,
+        self,
+        name: str,
+        v_cols: Set[str],
+        e_cols: Set[str],
+        **query_options: Any,
     ) -> cuGraphMultiGraph(directed=True):  # type: ignore
         raise NotImplementedError  # pragma: no cover
 
