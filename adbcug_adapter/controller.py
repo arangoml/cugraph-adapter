@@ -9,22 +9,22 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
     """ArangoDB-NetworkX controller.
 
     Responsible for controlling how nodes & edges are handled when
-    transitioning from ArangoDB to NetworkX, and vice-versa.
+    transitioning from ArangoDB to cuGraph.
 
     You can derive your own custom ADBNX_Controller, but it is not
     necessary for Homogeneous graphs.
     """
 
     def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> CuGId:
-        """Prepare an ArangoDB vertex before it gets inserted into the NetworkX
+        """Prepare an ArangoDB vertex before it gets inserted into the cuGraph
         graph.
 
         Given an ArangoDB vertex, you can modify it before it gets inserted
-        into the NetworkX graph, and/or derive a custom node id for networkx to use.
+        into the cuGraph graph, and/or derive a custom node id for networkx to use.
         In most cases, it is only required to return the ArangoDB _id of the vertex.
 
         :param adb_vertex: The ArangoDB vertex object to (optionally) modify.
-        :type adb_vertex: adbnx_adapter.typings.Json
+        :type adb_vertex: adbcug_adapter.typings.Json
         :param col: The ArangoDB collection the vertex belongs to.
         :type col: str
         :return: The ArangoDB _id attribute of the vertex.

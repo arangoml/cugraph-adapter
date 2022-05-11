@@ -10,6 +10,7 @@ from cudf import DataFrame
 from cugraph import MultiGraph as cuGraphMultiGraph
 
 from .abc import Abstract_ADBCUG_Adapter
+from .controller import ADBCUG_Controller
 from .typings import ArangoMetagraph, CuGId, Json
 
 
@@ -24,8 +25,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
     def __init__(
         self,
         conn: Json,
+        controller: ADBCUG_Controller = ADBCUG_Controller(),
     ):
         self.__validate_attributes("connection", set(conn), self.CONNECTION_ATRIBS)
+        if issubclass(type(controller), ADBCUG_Controller) is False:
+            msg = "controller must inherit from ADBNX_Controller"
+            raise TypeError(msg)
 
         username: str = conn["username"]
         password: str = conn["password"]
@@ -37,6 +42,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         url = protocol + "://" + host + ":" + port
 
         print(f"Connecting to {url}")
+        self.__cntrl: ADBCUG_Controller = controller
         self.__db = ArangoClient(hosts=url).db(db_name, username, password, verify=True)
 
     def arangodb_to_cugraph(
