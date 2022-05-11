@@ -21,14 +21,6 @@ db: StandardDatabase
 def pytest_sessionstart() -> None:
     global con
     con = get_oasis_crendetials()
-    # con = {
-    #     "username": "root",
-    #     "password": "openSesame",
-    #     "hostname": "localhost",
-    #     "port": 8529,
-    #     "protocol": "http",
-    #     "dbName": "_system",
-    # }
     print_connection_details(con)
     time.sleep(5)  # Enough for the oasis instance to be ready.
 
