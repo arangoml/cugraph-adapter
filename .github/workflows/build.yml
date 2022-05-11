@@ -20,7 +20,7 @@ on:
       - 'pyproject.toml'
       - '.github/workflows/build.yml'
 env:
-  PACKAGE_DIR: adbnx_adapter
+  PACKAGE_DIR: adbcug_adapter
   TESTS_DIR: tests
 jobs:
   build:
