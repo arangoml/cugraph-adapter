@@ -113,6 +113,6 @@ venv.bak/
 localdata/
 
 # setuptools_scm
-adbnx_adapter/version.py
+adbcug_adapter/version.py
 
 .vscode
