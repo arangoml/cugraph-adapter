@@ -61,3 +61,4 @@ class Abstract_ADBCUG_Controller(ABC):
 
     def _prepare_arangodb_edge(self, adb_edge: Json, col: str) -> CuGId:
         raise NotImplementedError  # pragma: no cover
+
