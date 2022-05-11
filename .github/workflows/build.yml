@@ -46,7 +46,7 @@ jobs:
           conda activate ${{ matrix.python }}
           pip install .[dev]
       - name: Run black
-        run: black --check --verbose --diff --color ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
+        run: black --check --verbose --diff ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run flake8
         run: flake8 ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run isort
