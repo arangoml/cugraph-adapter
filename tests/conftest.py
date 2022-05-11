@@ -1,41 +1,56 @@
-import json
 import os
 import subprocess
-import time
 from pathlib import Path
+from typing import Any
 
 from arango import ArangoClient
 from arango.database import StandardDatabase
-from requests import post
 
 from adbcug_adapter.adapter import ADBCUG_Adapter
 from adbcug_adapter.typings import Json
 
 PROJECT_DIR = Path(__file__).parent.parent
 
-con: Json
-adbcug_adapter: ADBCUG_Adapter
 db: StandardDatabase
+adbcug_adapter: ADBCUG_Adapter
 
 
-def pytest_sessionstart() -> None:
-    global con
-    con = get_oasis_crendetials()
-    print_connection_details(con)
-    time.sleep(5)  # Enough for the oasis instance to be ready.
+def pytest_addoption(parser: Any) -> None:
+    parser.addoption("--url", action="store", default="http://localhost:8529")
+    parser.addoption("--dbName", action="store", default="_system")
+    parser.addoption("--username", action="store", default="root")
+    parser.addoption("--password", action="store", default="openSesame")
 
-    global adbcug_adapter
-    adbcug_adapter = ADBCUG_Adapter(con)
+
+def pytest_configure(config: Any) -> None:
+    con = {
+        "url": config.getoption("url"),
+        "username": config.getoption("username"),
+        "password": config.getoption("password"),
+        "dbName": config.getoption("dbName"),
+    }
+
+    print("----------------------------------------")
+    print("URL: " + con["url"])
+    print("Username: " + con["username"])
+    print("Password: " + con["password"])
+    print("Database: " + con["dbName"])
+    print("----------------------------------------")
 
     global db
-    url = "https://" + con["hostname"] + ":" + str(con["port"])
-    client = ArangoClient(hosts=url)
-    db = client.db(con["dbName"], con["username"], con["password"], verify=True)
+    db = ArangoClient(hosts=con["url"]).db(
+        con["dbName"], con["username"], con["password"]
+    )
+
+    global adbcug_adapter
+    adbcug_adapter = ADBCUG_Adapter(db)
 
     arango_restore(con, "examples/data/fraud_dump")
     arango_restore(con, "examples/data/imdb_dump")
 
-    db.create_graph(
+    # Create Fraud Detection Graph
+    adbcug_adapter.db.delete_graph("fraud-detection", ignore_missing=True)
+    adbcug_adapter.db.create_graph(
         "fraud-detection",
         edge_definitions=[
             {
@@ -52,34 +67,16 @@ def pytest_sessionstart() -> None:
     )
 
 
-def get_oasis_crendetials() -> Json:
-    url = "https://tutorials.arangodb.cloud:8529/_db/_system/tutorialDB/tutorialDB"
-    request = post(url, data=json.dumps("{}"))
-    if request.status_code != 200:
-        raise Exception("Error retrieving login data.")
-
-    creds: Json = json.loads(request.text)
-    return creds
-
-
-def print_connection_details(con: Json) -> None:
-    print("----------------------------------------")
-    print("https://{}:{}".format(con["hostname"], con["port"]))
-    print("Username: " + con["username"])
-    print("Password: " + con["password"])
-    print("Database: " + con["dbName"])
-    print("----------------------------------------")
-
-
 def arango_restore(con: Json, path_to_data: str) -> None:
     restore_prefix = "./assets/" if os.getenv("GITHUB_ACTIONS") else ""
+    protocol = "http+ssl://" if "https://" in con["url"] else "tcp://"
+    url = protocol + con["url"].partition("://")[-1]
 
     subprocess.check_call(
         f'chmod -R 755 ./assets/arangorestore && {restore_prefix}arangorestore \
-            -c none --server.endpoint http+ssl://{con["hostname"]}:{con["port"]} \
-                --server.username {con["username"]} --server.database {con["dbName"]} \
-                    --server.password {con["password"]} \
-                        --input-directory "{PROJECT_DIR}/{path_to_data}"',
+            -c none --server.endpoint {url} --server.username {con["username"]} \
+                --server.database {con["dbName"]} --server.password {con["password"]} \
+                    --input-directory "{PROJECT_DIR}/{path_to_data}"',
         cwd=f"{PROJECT_DIR}/tests",
         shell=True,
     )

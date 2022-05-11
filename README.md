@@ -22,6 +22,15 @@ While offering a similar API and set of graph algorithms to NetworkX, RAPIDS cuG
 
 ## Installation
 
+<u>Prerequisites</u>: A CUDA-capable GPU, and [Anaconda](https://anaconda.org/)
+
+#### Current State
+```
+conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph=21.12.00 cudatoolkit=11.4
+pip install git+https://github.com/arangoml/cugraph-adapter.git
+```
+
+#### Latest Release (Not available yet)
 ```
 conda install -c arangodb adbcug_adapter
 ```
@@ -34,21 +43,17 @@ For a more detailed walk-through, access the official notebook on Colab: **TODO*
 # Import the ArangoDB-cuGraph Adapter
 from adbcug_adapter.adapter import ADBCUG_Adapter
 
-# Store ArangoDB endpoint connection info
-# Assumption: the ArangoDB "fraud detection" dataset is imported to this endpoint for example purposes
-con = {
-    "protocol": "http",
-    "hostname": "localhost",
-    "port": 8529,
-    "username": "root",
-    "password": "openSesame",
-    "dbName": "_system",
-}
+# Import the Python-Arango driver
+from arango import ArangoClient
 
-# Instantiate the ADBCUG Adapter with connection credentials
-adbcug_adapter = ADBCUG_Adapter(con)
+# Instantiate driver client based on user preference
+# Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint for example purposes
+db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="openSesame")
 
-# Convert ArangoDB to cuGraph via Graph
+# Instantiate your ADBCUG Adapter with driver client
+adbnx_adapter = ADBNX_Adapter(db)
+
+# Convert ArangoDB to cuGraph via Graph Name
 cug_fraud_graph = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
 
 # Convert ArangoDB to cuGraph via Collection Names
@@ -61,21 +66,20 @@ cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
 
 ##  Development & Testing (TODO - Rework as a conda environment)
 
-Prerequisite: `arangorestore`, `conda`, `NVidia CUDA-enabled GPU`
+Prerequisite: `conda`, `arangorestore`, `CUDA-capable GPU`
 
 1. `git clone https://github.com/arangoml/cugraph-adapter.git`
 2. `cd cugraph-adapter`
 3. (create virtual environment of choice)
-4. `pip install -e . pytest`
-5. (create an ArangoDB instance with method of choice)
-6. `pytest --protocol <> --host <> --port <> --dbName <> --username <> --password <>`
+4. `conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph=21.12.00 cudatoolkit=11.4`
+5. `pip install -e .[dev]`
+6. (create an ArangoDB instance with method of choice)
+7. `pytest --url <> --dbName <> --username <> --password <>`
 
 **Note**: A `pytest` parameter can be omitted if the endpoint is using its default value:
 ```python
 def pytest_addoption(parser):
-    parser.addoption("--protocol", action="store", default="http")
-    parser.addoption("--host", action="store", default="localhost")
-    parser.addoption("--port", action="store", default="8529")
+    parser.addoption("--url", action="store", default="http://localhost:8529")
     parser.addoption("--dbName", action="store", default="_system")
     parser.addoption("--username", action="store", default="root")
     parser.addoption("--password", action="store", default="openSesame")
