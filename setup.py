@@ -4,7 +4,7 @@ with open("./README.md") as fp:
     long_description = fp.read()
 
 setup(
-    name="adbnx_adapter",
+    name="adbcug_adapter",
     author="Anthony Mahanna",
     author_email="anthony.mahanna@arangodb.com",
     description="Convert ArangoDB graphs to cuGraph",
