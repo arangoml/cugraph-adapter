@@ -2,12 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABC
-from typing import Any, List, Set
+from typing import Any, Set
 
-from arango.graph import Graph as ArangoDBGraph
 from cugraph import MultiGraph as cuGraphMultiGraph
 
-from .typings import ArangoMetagraph
+from .typings import ArangoMetagraph, CuGId, Json
 
 
 class Abstract_ADBCUG_Adapter(ABC):
@@ -24,7 +23,11 @@ class Abstract_ADBCUG_Adapter(ABC):
         raise NotImplementedError  # pragma: no cover
 
     def arangodb_collections_to_cugraph(
-        self, name: str, v_cols: Set[str], e_cols: Set[str], **query_options: Any,
+        self,
+        name: str,
+        v_cols: Set[str],
+        e_cols: Set[str],
+        **query_options: Any,
     ) -> cuGraphMultiGraph(directed=True):  # type: ignore
         raise NotImplementedError  # pragma: no cover
 
@@ -50,3 +53,11 @@ class Abstract_ADBCUG_Adapter(ABC):
     @property
     def EDGE_DEFINITION_ATRIBS(self) -> Set[str]:
         return {"edge_collection", "from_vertex_collections", "to_vertex_collections"}
+
+
+class Abstract_ADBCUG_Controller(ABC):
+    def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> CuGId:
+        raise NotImplementedError  # pragma: no cover
+
+    def _prepare_arangodb_edge(self, adb_edge: Json, col: str) -> CuGId:
+        raise NotImplementedError  # pragma: no cover
