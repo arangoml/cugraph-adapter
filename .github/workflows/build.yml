@@ -46,7 +46,11 @@ jobs:
           conda activate ${{ matrix.python }}
           pip install .[dev]
       - name: check black version
-        run: black --version
+        run: |
+          source ~/anaconda3/etc/profile.d/conda.sh
+          conda activate ${{ matrix.python }}
+          black --version
+          black --check --verbose --diff ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run black
         run: black --check --verbose --diff ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run flake8
