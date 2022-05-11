@@ -1,11 +1,10 @@
 from typing import List, Set
 
 import pytest
-from arango.graph import Graph as ArangoGraph
 from cugraph import MultiGraph as cuGraphMultiGraph
 
 from adbcug_adapter.adapter import ADBCUG_Adapter
-from adbcug_adapter.typings import ArangoMetagraph, CuGId, Json
+from adbcug_adapter.typings import ArangoMetagraph, Json
 
 from .conftest import adbcug_adapter, db
 

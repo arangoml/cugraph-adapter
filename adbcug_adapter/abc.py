@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABC
-from typing import Any, List, Set
+from typing import Any, Set
 
-from arango.graph import Graph as ArangoDBGraph
 from cugraph import MultiGraph as cuGraphMultiGraph
 
 from .typings import ArangoMetagraph

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
-from typing import Any, DefaultDict, Dict, List, Set, Tuple, Union
+from typing import Any, Dict, List, Set, Tuple, Union
 
 from arango import ArangoClient
 from arango.cursor import Cursor
-from arango.graph import Graph as ArangoDBGraph
 from arango.result import Result
 from cudf import DataFrame
 from cugraph import MultiGraph as cuGraphMultiGraph
