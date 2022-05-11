@@ -84,7 +84,7 @@ def arango_restore(con: Json, path_to_data: str) -> None:
 
     subprocess.check_call(
         f'chmod -R 755 ./assets/arangorestore && {restore_prefix}arangorestore \
-            -c none --server.endpoint tcp://{con["hostname"]}:{con["port"]} \
+            -c none --server.endpoint http+ssl://{con["hostname"]}:{con["port"]} \
                 --server.username {con["username"]} --server.database {con["dbName"]} \
                     --server.password {con["password"]} \
                         --input-directory "{PROJECT_DIR}/{path_to_data}"',
