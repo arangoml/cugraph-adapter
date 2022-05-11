@@ -56,7 +56,10 @@ jobs:
       - name: Run isort
         run: isort --check --profile=black ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run mypy
-        run: mypy ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
+        run: |
+          source ~/anaconda3/etc/profile.d/conda.sh
+          conda activate ${{ matrix.python }}
+          mypy ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       - name: Run pytest in conda env
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
