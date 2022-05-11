@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .abc import Abstract_ADBCUG_Controller
-from .typings import Json, CuGId
+from .typings import CuGId, Json
 
 
 class ADBCUG_Controller(Abstract_ADBCUG_Controller):

@@ -6,7 +6,7 @@ from typing import Any, Set
 
 from cugraph import MultiGraph as cuGraphMultiGraph
 
-from .typings import ArangoMetagraph, Json, CuGId
+from .typings import ArangoMetagraph, CuGId, Json
 
 
 class Abstract_ADBCUG_Adapter(ABC):
