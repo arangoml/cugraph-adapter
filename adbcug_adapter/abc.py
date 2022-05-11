@@ -58,3 +58,6 @@ class Abstract_ADBCUG_Adapter(ABC):
 class Abstract_ADBCUG_Controller(ABC):
     def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> CuGId:
         raise NotImplementedError  # pragma: no cover
+
+    def _prepare_arangodb_edge(self, adb_edge: Json, col: str) -> CuGId:
+        raise NotImplementedError  # pragma: no cover
