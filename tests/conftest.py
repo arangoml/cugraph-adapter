@@ -33,7 +33,7 @@ def pytest_sessionstart() -> None:
     time.sleep(5)  # Enough for the oasis instance to be ready.
 
     global adbcug_adapter
-    adcug_adapter = ADBCUG_Adapter(con)
+    adbcug_adapter = ADBCUG_Adapter(con)
 
     global db
     url = "https://" + con["hostname"] + ":" + str(con["port"])
