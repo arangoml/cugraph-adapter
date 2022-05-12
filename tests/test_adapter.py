@@ -19,7 +19,7 @@ def test_validate_constructor() -> None:
     bad_db: Dict[str, Any] = dict()
 
     with pytest.raises(TypeError):
-        ADBCUG_Adapter(bad_db)  # type: ignore
+        ADBCUG_Adapter(bad_db)
 
 
 @pytest.mark.parametrize(
