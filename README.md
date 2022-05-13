@@ -51,7 +51,7 @@ from arango import ArangoClient
 db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="openSesame")
 
 # Instantiate your ADBCUG Adapter with driver client
-adbnx_adapter = ADBNX_Adapter(db)
+adbcug_adapter = ADBCUG_Adapter(db)
 
 # Convert ArangoDB to cuGraph via Graph Name
 cug_fraud_graph = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
