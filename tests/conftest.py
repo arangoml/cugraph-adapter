@@ -43,7 +43,7 @@ def pytest_configure(config: Any) -> None:
     )
 
     global adbcug_adapter
-    adbcug_adapter = ADBCUG_Adapter(db)
+    adbcug_adapter = ADBCUG_Adapter(db, verbose=True)
 
     arango_restore(con, "examples/data/fraud_dump")
     arango_restore(con, "examples/data/imdb_dump")

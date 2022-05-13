@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import logging
 from typing import Any, Dict, List, Set, Tuple, Union
 
 from arango.cursor import Cursor
@@ -9,6 +9,7 @@ from arango.result import Result
 from cudf import DataFrame
 from cugraph import MultiGraph as cuGraphMultiGraph
 
+from . import logger
 from .abc import Abstract_ADBCUG_Adapter
 from .typings import ArangoMetagraph, CuGId, Json
 
@@ -18,19 +19,28 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
     :param db: A python-arango database instance
     :type db: arango.database.Database
+    :param verbose: If set to True, will print logging.DEBUG logs in the console.
+    :type verbose: bool
     :raise TypeError: If invalid database parameter
     """
 
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, verbose: bool = False):
+        self.set_verbose(verbose)
+
         if issubclass(type(db), Database) is False:
             msg = "**db** parameter must inherit from arango.database.Database"
             raise TypeError(msg)
 
         self.__db = db
 
+        logger.info(f"Instantiated ADBCUG_Adapter with database '{db.name}'")
+
     @property
     def db(self) -> Database:
         return self.__db
+
+    def set_verbose(self, verbose: bool) -> None:
+        logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     def arangodb_to_cugraph(
         self,
@@ -70,6 +80,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             },
         }
         """
+        logger.debug(f"Starting arangodb_to_cugraph({name}, ...):")
         self.__validate_attributes("graph", set(metagraph), self.METAGRAPH_ATRIBS)
 
         # Maps ArangoDB vertex IDs to cuGraph node IDs
@@ -78,6 +89,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         adb_v: Json
         for col, atribs in metagraph["vertexCollections"].items():
+            logger.debug(f"Preparing '{col}' vertices")
             for adb_v in self.__fetch_adb_docs(col, atribs, is_keep, query_options):
                 adb_id: str = adb_v["_id"]
                 cug_id = adb_id
@@ -85,17 +97,19 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         adb_e: Json
         for col, atribs in metagraph["edgeCollections"].items():
+            logger.debug(f"Preparing '{col}' edges")
             for adb_e in self.__fetch_adb_docs(col, atribs, is_keep, query_options):
                 from_node_id: CuGId = adb_map[adb_e["_from"]]["cug_id"]
                 to_node_id: CuGId = adb_map[adb_e["_to"]]["cug_id"]
                 cg_edges.append((from_node_id, to_node_id))
 
+        logger.debug(f"Inserting {len(cg_edges)} edges")
         srcs = [s for (s, _) in cg_edges]
         dsts = [d for (_, d) in cg_edges]
         cg_graph = cuGraphMultiGraph(directed=True)
         cg_graph.from_cudf_edgelist(DataFrame({"source": srcs, "destination": dsts}))
 
-        print(f"cuGraph: {name} created")
+        logger.info(f"Created cuGraph '{name}' Graph")
         return cg_graph
 
     def arangodb_collections_to_cugraph(
