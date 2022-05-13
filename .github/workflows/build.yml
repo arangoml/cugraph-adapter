@@ -43,6 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
+          conda env list
           conda activate ${{ matrix.python }}
           pip install .[dev]
       - name: Run black
