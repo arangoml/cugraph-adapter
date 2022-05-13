@@ -22,11 +22,11 @@ While offering a similar API and set of graph algorithms to NetworkX, RAPIDS cuG
 
 ## Installation
 
-<u>Prerequisites</u>: A CUDA-capable GPU, and [Anaconda](https://anaconda.org/)
+<u>Prerequisites</u>: A CUDA-capable GPU, [Anaconda](https://anaconda.org/), Python>=3.7
 
 #### Current State
 ```
-conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph=21.12.00 cudatoolkit=11.4
+conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph cudatoolkit=11.5
 pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```
 
@@ -66,7 +66,7 @@ cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
 
 ##  Development & Testing (TODO - Rework as a conda environment)
 
-Prerequisite: `conda`, `arangorestore`, `CUDA-capable GPU`
+Prerequisite: `conda`, `arangorestore`, `CUDA-capable GPU`, `Python>=3.7`
 
 1. `git clone https://github.com/arangoml/cugraph-adapter.git`
 2. `cd cugraph-adapter`
