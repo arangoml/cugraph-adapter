@@ -6,7 +6,7 @@ from typing import Any, Set
 
 from cugraph import MultiGraph as cuGraphMultiGraph
 
-from .typings import ArangoMetagraph
+from .typings import ArangoMetagraph, CuGId, Json
 
 
 class Abstract_ADBCUG_Adapter(ABC):
@@ -45,3 +45,8 @@ class Abstract_ADBCUG_Adapter(ABC):
     @property
     def METAGRAPH_ATRIBS(self) -> Set[str]:
         return {"vertexCollections", "edgeCollections"}
+
+
+class Abstract_ADBCUG_Controller(ABC):
+    def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> CuGId:
+        raise NotImplementedError  # pragma: no cover

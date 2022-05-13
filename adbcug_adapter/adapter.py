@@ -11,6 +11,7 @@ from cugraph import MultiGraph as cuGraphMultiGraph
 
 from . import logger
 from .abc import Abstract_ADBCUG_Adapter
+from .controller import ADBCUG_Controller
 from .typings import ArangoMetagraph, CuGId, Json
 
 
@@ -19,19 +20,33 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
     :param db: A python-arango database instance
     :type db: arango.database.Database
+    :param controller: The ArangoDB-cuGraph controller, used to prepare ArangoDB
+        nodes before insertion into cuGraph, optionally re-defined by the user
+        if needed (otherwise defaults to ADBCUG_Controller).
+    :type controller: ADBCUG_Controller
     :param verbose: If set to True, will print logging.DEBUG logs in the console.
     :type verbose: bool
     :raise TypeError: If invalid database parameter
     """
 
-    def __init__(self, db: Database, verbose: bool = False):
+    def __init__(
+        self,
+        db: Database,
+        controller: ADBCUG_Controller = ADBCUG_Controller(),
+        verbose: bool = False,
+    ):
         self.set_verbose(verbose)
 
         if issubclass(type(db), Database) is False:
             msg = "**db** parameter must inherit from arango.database.Database"
             raise TypeError(msg)
 
+        if issubclass(type(controller), ADBCUG_Controller) is False:
+            msg = "**controller** parameter must inherit from ADBCUG_Controller"
+            raise TypeError(msg)
+
         self.__db = db
+        self.__cntrl: ADBCUG_Controller = controller
 
         logger.info(f"Instantiated ADBCUG_Adapter with database '{db.name}'")
 
@@ -92,7 +107,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             logger.debug(f"Preparing '{col}' vertices")
             for adb_v in self.__fetch_adb_docs(col, atribs, is_keep, query_options):
                 adb_id: str = adb_v["_id"]
-                cug_id = adb_id
+                cug_id = self.__cntrl._prepare_arangodb_vertex(adb_v, col)
                 adb_map[adb_id] = {"cug_id": cug_id, "collection": col}
 
         adb_e: Json

@@ -18,8 +18,14 @@ def test_validate_attributes() -> None:
 def test_validate_constructor() -> None:
     bad_db: Dict[str, Any] = dict()
 
+    class Bad_ADBCUG_Controller:
+        pass
+
     with pytest.raises(TypeError):
         ADBCUG_Adapter(bad_db)
+
+    with pytest.raises(TypeError):
+        ADBCUG_Adapter(db, Bad_ADBCUG_Controller())  # type: ignore
 
 
 @pytest.mark.parametrize(
