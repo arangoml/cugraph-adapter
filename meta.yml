@@ -18,7 +18,7 @@ requirements:
   host:
     - python>=3.7,<3.10
     - cugraph>=21.12.00
-    - cudatoolkit>=11.2
+    - cudatoolkit>=11.4
     - python-arango>=7.3.4
     - setuptools>=42
     - setuptools_scm[toml]>=3.4
