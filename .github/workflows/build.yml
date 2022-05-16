@@ -44,9 +44,7 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda env list
-          conda create -n ${{ matrix.python }} python=${{ matrix.python }}
           conda activate ${{ matrix.python }}
-          conda install -c nvidia -c rapidsai -c numba -c conda-forge cugraph cudatoolkit=11.5
           pip install .[dev]
       - name: Run black
         run: |
