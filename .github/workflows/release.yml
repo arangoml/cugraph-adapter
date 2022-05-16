@@ -58,42 +58,36 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    name: Release package
+    defaults:
+      run:
+        shell: bash -l {0}
+    name: release
     steps:
       - uses: actions/checkout@v2
-
       - name: Fetch complete history for all tags and branches
         run: git fetch --prune --unshallow
-
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.8"
-
-      - name: Install release packages
-        run: pip install setuptools wheel twine setuptools-scm[toml]
-
-      - name: Install dependencies
-        run: pip install .[dev]
-
-      - name: Build distribution
-        run: python setup.py sdist bdist_wheel
-
-      - name: Publish to PyPI Test
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD_TEST }}
-        run: twine upload --repository testpypi dist/* #--skip-existing
-      - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        run: twine upload --repository pypi dist/* #--skip-existing
+          python-version: "3.9"
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
+        with:
+          auto-update-conda: true
+          python-version: "3.9"
+      - name: Install Release Dependencies
+        run: conda install conda-build anaconda-client conda-verify -y
+      - name: Anaconda Login
+        run: anaconda login --username arangodb --password '${{ secrets.CONDA_PASSWORD }}'
+      - name: Conda Config Auto-Upload
+        run: conda config --set anaconda_upload yes
+      - name: Conda Build
+        run: conda build .
 
   changelog:
     needs: release
     runs-on: ubuntu-latest
-    name: Update Changelog
+    name: changelog
     steps:
       - uses: actions/checkout@v2
         with:
@@ -114,9 +108,6 @@ jobs:
 
       - name: Install release packages
         run: pip install wheel gitchangelog pystache
-
-      - name: Install dependencies
-        run: pip install .[dev]
 
       - name: Set variables
         run: echo "VERSION=$(curl ${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/latest | python -c "import sys; import json; print(json.load(sys.stdin)['tag_name'])")" >> $GITHUB_ENV
@@ -142,5 +133,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Alert developer of open PR
-        run: echo "Hi dev! Please go see $PR_URL"
+      - name: Set pull request to auto-merge as rebase
+        run: |
+          gh pr merge $PR_URL \
+            --auto \
+            --delete-branch \
+            --rebase
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

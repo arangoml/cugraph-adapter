@@ -1,19 +1,25 @@
 # https://docs.conda.io/projects/conda-build/en/latest/resources/define-metadata.html
+{% set name = "adbcug_adapter" %}
+{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
+
 package:
-  name: adbcug_adapter
+  name: {{ name|lower }}
   version: {{ version }}
+
+build:
+  noarch: python
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv
 
 source:
   git_url: https://github.com/arangoml/cugraph-adapter
 
-build:
-
 requirements:
-  build:
-    - python>=3.7,<3.9
+  host:
+    - python>=3.7,<3.10
     - cugraph>=21.12.00
     - cudatoolkit>=11.2
-    - python-arango>=7.3.1
+    - python-arango>=7.3.4
     - setuptools>=42
     - setuptools_scm[toml]>=3.4
     - black
@@ -24,21 +30,15 @@ requirements:
     - coveralls>=3.3.1
     - types-setuptools
   run:
-    - python>=3.7,<3.9
+    - python>=3.7,<3.10
     - cugraph>=21.12.00
-    - cudatoolkit>=11.2
-    - python-arango>=7.3.1
+    - cudatoolkit>=11.4
+    - python-arango>=7.3.4
     - setuptools>=42
-    - setuptools_scm[toml]>=3.4
-
-tests:                                 
-  requirements:                        
-    -
-  imports:                             
-    -                          
+    - setuptools_scm[toml]>=3.4                     
 
 about:
   home: https://github.com/arangoml/cugraph-adapter
   license: Apache-2.0
   license_file: ./LICENSE
-  summary: The cuGraph adapter for ArangoDB. Convert ArangoDB graphs to RAPIDS cuGraph. 
+  summary: The official cuGraph adapter for ArangoDB.
