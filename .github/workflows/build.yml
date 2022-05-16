@@ -30,7 +30,7 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        python: ["3.7", "3.8", "3.9"]
+        python: ["3.10"]
     name: gpu
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +44,9 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda env list
+          conda create -n ${{ matrix.python }} python=${{ matrix.python }}
           conda activate ${{ matrix.python }}
+          conda install -c nvidia -c rapidsai -c numba -c conda-forge cugraph cudatoolkit=11.5
           pip install .[dev]
       - name: Run black
         run: |
