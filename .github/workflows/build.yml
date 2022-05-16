@@ -30,7 +30,7 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        python: ["3.6"]
+        python: ["3.7", "3.8", "3.9"]
     name: gpu
     steps:
       - uses: actions/checkout@v2
