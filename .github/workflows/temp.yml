@@ -17,10 +17,11 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.9"
+          python-version: "3.8"
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda activate "3.9"
-          conda install conda-build anaconda-client conda-verify -y
-          conda build .
+          conda env list
+          conda create -n condabuild python=3.8 conda-build anaconda-client conda-verify -y
+          conda activate condabuild
+          conda list
