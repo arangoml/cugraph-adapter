@@ -21,6 +21,8 @@ jobs:
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda activate 3.7
-          conda list
+          conda create -n cbuild python=3.9
+          conda activate cbuild
+          conda install -c nvidia -c rapidsai -c numba -c conda-forge cugraph cudatoolkit=11.5
           conda info
+          conda list
