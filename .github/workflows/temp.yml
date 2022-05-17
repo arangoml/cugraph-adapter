@@ -21,4 +21,5 @@ jobs:
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda update --name base conda
+          conda activate condabuild39
+          conda list
