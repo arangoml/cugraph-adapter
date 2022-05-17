@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import logging
 from typing import Any, Dict, List, Set, Tuple, Union
 
-from arango import ArangoClient
 from arango.cursor import Cursor
+from arango.database import Database
 from arango.result import Result
 from cudf import DataFrame
 from cugraph import MultiGraph as cuGraphMultiGraph
 
+from . import logger
 from .abc import Abstract_ADBCUG_Adapter
 from .controller import ADBCUG_Controller
 from .typings import ArangoMetagraph, CuGId, Json
@@ -17,33 +18,44 @@ from .typings import ArangoMetagraph, CuGId, Json
 class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
     """ArangoDB-cuGraph adapter.
 
-    :param conn: Connection details to an ArangoDB instance.
-    :type conn: ADBCUG_adapter.typings.Json
-    :raise ValueError: If missing required keys in conn
+    :param db: A python-arango database instance
+    :type db: arango.database.Database
+    :param controller: The ArangoDB-cuGraph controller, used to prepare ArangoDB
+        nodes before insertion into cuGraph, optionally re-defined by the user
+        if needed (otherwise defaults to ADBCUG_Controller).
+    :type controller: ADBCUG_Controller
+    :param verbose: If set to True, will print logging.DEBUG logs in the console.
+    :type verbose: bool
+    :raise TypeError: If invalid database parameter
     """
 
     def __init__(
         self,
-        conn: Json,
+        db: Database,
         controller: ADBCUG_Controller = ADBCUG_Controller(),
+        verbose: bool = False,
     ):
-        self.__validate_attributes("connection", set(conn), self.CONNECTION_ATRIBS)
-        if issubclass(type(controller), ADBCUG_Controller) is False:
-            msg = "controller must inherit from ADBNX_Controller"
+        self.set_verbose(verbose)
+
+        if issubclass(type(db), Database) is False:
+            msg = "**db** parameter must inherit from arango.database.Database"
             raise TypeError(msg)
 
-        username: str = conn["username"]
-        password: str = conn["password"]
-        db_name: str = conn["dbName"]
-        host: str = conn["hostname"]
-        protocol: str = conn.get("protocol", "https")
-        port = str(conn.get("port", 8529))
+        if issubclass(type(controller), ADBCUG_Controller) is False:
+            msg = "**controller** parameter must inherit from ADBCUG_Controller"
+            raise TypeError(msg)
 
-        url = protocol + "://" + host + ":" + port
-
-        print(f"Connecting to {url}")
+        self.__db = db
         self.__cntrl: ADBCUG_Controller = controller
-        self.__db = ArangoClient(hosts=url).db(db_name, username, password, verify=True)
+
+        logger.info(f"Instantiated ADBCUG_Adapter with database '{db.name}'")
+
+    @property
+    def db(self) -> Database:
+        return self.__db
+
+    def set_verbose(self, verbose: bool) -> None:
+        logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     def arangodb_to_cugraph(
         self,
@@ -83,6 +95,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             },
         }
         """
+        logger.debug(f"Starting arangodb_to_cugraph({name}, ...):")
         self.__validate_attributes("graph", set(metagraph), self.METAGRAPH_ATRIBS)
 
         # Maps ArangoDB vertex IDs to cuGraph node IDs
@@ -91,25 +104,27 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         adb_v: Json
         for col, atribs in metagraph["vertexCollections"].items():
+            logger.debug(f"Preparing '{col}' vertices")
             for adb_v in self.__fetch_adb_docs(col, atribs, is_keep, query_options):
                 adb_id: str = adb_v["_id"]
-                nx_id = self.__cntrl._prepare_arangodb_vertex(adb_v, col)
-                adb_map[adb_id] = {"nx_id": nx_id, "collection": col}
+                cug_id = self.__cntrl._prepare_arangodb_vertex(adb_v, col)
+                adb_map[adb_id] = {"cug_id": cug_id, "collection": col}
 
         adb_e: Json
         for col, atribs in metagraph["edgeCollections"].items():
+            logger.debug(f"Preparing '{col}' edges")
             for adb_e in self.__fetch_adb_docs(col, atribs, is_keep, query_options):
-                from_node_id: CuGId = adb_map[adb_e["_from"]]["nx_id"]
-                to_node_id: CuGId = adb_map[adb_e["_to"]]["nx_id"]
-                self.__cntrl._prepare_arangodb_edge(adb_e, col)
+                from_node_id: CuGId = adb_map[adb_e["_from"]]["cug_id"]
+                to_node_id: CuGId = adb_map[adb_e["_to"]]["cug_id"]
                 cg_edges.append((from_node_id, to_node_id))
 
+        logger.debug(f"Inserting {len(cg_edges)} edges")
         srcs = [s for (s, _) in cg_edges]
         dsts = [d for (_, d) in cg_edges]
         cg_graph = cuGraphMultiGraph(directed=True)
         cg_graph.from_cudf_edgelist(DataFrame({"source": srcs, "destination": dsts}))
 
-        print(f"cuGraph: {name} created")
+        logger.info(f"Created cuGraph '{name}' Graph")
         return cg_graph
 
     def arangodb_collections_to_cugraph(

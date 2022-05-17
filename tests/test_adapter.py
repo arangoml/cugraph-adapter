@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import Any, Dict, List, Set
 
 import pytest
 from cugraph import MultiGraph as cuGraphMultiGraph
@@ -10,17 +10,22 @@ from .conftest import adbcug_adapter, db
 
 
 def test_validate_attributes() -> None:
-    bad_connection = {
-        "dbName": "_system",
-        "hostname": "localhost",
-        "protocol": "http",
-        "port": 8529,
-        # "username": "root",
-        # "password": "password",
-    }
-
     with pytest.raises(ValueError):
-        ADBCUG_Adapter(bad_connection)
+        bad_metagraph: Dict[str, Any] = dict()
+        adbcug_adapter.arangodb_to_cugraph("graph_name", bad_metagraph)
+
+
+def test_validate_constructor() -> None:
+    bad_db: Dict[str, Any] = dict()
+
+    class Bad_ADBCUG_Controller:
+        pass
+
+    with pytest.raises(TypeError):
+        ADBCUG_Adapter(bad_db)
+
+    with pytest.raises(TypeError):
+        ADBCUG_Adapter(db, Bad_ADBCUG_Controller())  # type: ignore
 
 
 @pytest.mark.parametrize(

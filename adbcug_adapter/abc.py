@@ -43,21 +43,10 @@ class Abstract_ADBCUG_Adapter(ABC):
         raise NotImplementedError  # pragma: no cover
 
     @property
-    def CONNECTION_ATRIBS(self) -> Set[str]:
-        return {"hostname", "username", "password", "dbName"}
-
-    @property
     def METAGRAPH_ATRIBS(self) -> Set[str]:
         return {"vertexCollections", "edgeCollections"}
-
-    @property
-    def EDGE_DEFINITION_ATRIBS(self) -> Set[str]:
-        return {"edge_collection", "from_vertex_collections", "to_vertex_collections"}
 
 
 class Abstract_ADBCUG_Controller(ABC):
     def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> CuGId:
-        raise NotImplementedError  # pragma: no cover
-
-    def _prepare_arangodb_edge(self, adb_edge: Json, col: str) -> CuGId:
         raise NotImplementedError  # pragma: no cover

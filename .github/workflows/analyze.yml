@@ -14,7 +14,7 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'adbnx_adapter/**'
+      - 'adbcug_adapter/**'
       - 'tests/**'
       - 'setup.py'
       - 'setup.cfg'
@@ -23,7 +23,7 @@ on:
   pull_request:
     branches: [ master ]
     paths:
-      - 'adbnx_adapter/**'
+      - 'adbcug_adapter/**'
       - 'tests/**'
       - 'setup.py'
       - 'setup.cfg'
