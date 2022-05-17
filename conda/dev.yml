@@ -7,6 +7,4 @@ dependencies:
 - cugraph>=21.12.00
 - python>=3.7,<3.10
 - python-arango>=7.3.3
-- pip
-- pytest>=6.0.0
 - setuptools>=42
