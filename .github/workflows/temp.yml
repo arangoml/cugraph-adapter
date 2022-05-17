@@ -21,6 +21,5 @@ jobs:
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda create -n condabuild39 python=3.9
           conda activate condabuild39
           conda update -n condabuild39 -c defaults conda -y
