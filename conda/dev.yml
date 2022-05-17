@@ -3,7 +3,7 @@ channels:
 - rapidsai
 - conda-forge
 dependencies:
-- cudatoolkit>=11.4
+- cudatoolkit>=11.5
 - cugraph>=21.12.00
 - python>=3.7,<3.10
 - python-arango>=7.3.3
