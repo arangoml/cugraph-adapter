@@ -71,7 +71,7 @@ Prerequisite: `conda`, `arangorestore`, `CUDA-capable GPU`, `Python>=3.7`
 1. `git clone https://github.com/arangoml/cugraph-adapter.git`
 2. `cd cugraph-adapter`
 3. (create virtual environment of choice)
-4. `conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph=21.12.00 cudatoolkit=11.4`
+4. `conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph cudatoolkit=11.4`
 5. `pip install -e .[dev]`
 6. (create an ArangoDB instance with method of choice)
 7. `pytest --url <> --dbName <> --username <> --password <>`
