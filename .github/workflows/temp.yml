@@ -21,9 +21,13 @@ jobs:
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda env remove -n cbuild
-          conda env remove -n condabuild
-          conda env remove -n 3.10
-          conda env remove -n 3.6
-          conda env list
+          conda create condabuild39 python=3.9
+          conda activate condabuild39
+          conda run python --version
+          conda config --set channel_priority false
+          conda config --add channels nvidia
+          conda config --add channels rapidsai
+          conda config --add channels numba
+          conda config --add channels conda-forge
+          conda list
           conda info
