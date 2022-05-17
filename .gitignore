@@ -112,7 +112,4 @@ venv.bak/
 # ArangoDB Starter
 localdata/
 
-# setuptools_scm
-adbcug_adapter/version.py
-
 .vscode
