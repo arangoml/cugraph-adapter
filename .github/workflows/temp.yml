@@ -22,4 +22,6 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda env remove -n condabuild
-          conda env create -n condabuild --file conda/dev.yml
+          conda activate 3.8
+          conda list
+          conda info
