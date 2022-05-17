@@ -21,7 +21,5 @@ jobs:
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda env list
-          conda create -n condabuild python=3.8 conda-build anaconda-client conda-verify -y
           conda activate condabuild
-          conda list
+          conda build .
