@@ -22,4 +22,5 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda activate condabuild39
-          conda build .
+          anaconda login --username aMahanna --password '${{ secrets.CONDA_PASSWORD }}'
+          anaconda upload /home/maxk/anaconda3/conda-bld/noarch/adbcug_adapter-0.0.0.dev-py_0.tar.bz2
