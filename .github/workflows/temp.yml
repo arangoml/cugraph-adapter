@@ -21,7 +21,7 @@ jobs:
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda create condabuild39 python=3.9
+          conda create -n condabuild39 python=3.9
           conda activate condabuild39
           conda run python --version
           conda config --set channel_priority false
