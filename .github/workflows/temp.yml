@@ -1,16 +1,16 @@
-name: release
-on: [workflow_dispatch]
+name: condabuild
+on: [push]
 env:
   PACKAGE_DIR: adbcug_adapter
   TESTS_DIR: tests
 jobs:
-  release:
+  condabuild:
     needs: build
     runs-on: self-hosted
     defaults:
       run:
         shell: bash -l {0}
-    name: release
+    name: condabuild
     steps:
       - uses: actions/checkout@v2
       - name: Fetch complete history for all tags and branches
