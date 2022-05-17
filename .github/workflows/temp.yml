@@ -18,9 +18,17 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.9"
-      - name: Conda Build
+      # - name: Conda Build
+      #   run: |
+      #     source ~/anaconda3/etc/profile.d/conda.sh
+      #     conda activate condabuild39
+      #     anaconda login --username aMahanna --password '${{ secrets.CONDA_PASSWORD }}'
+      #     anaconda upload /home/maxk/anaconda3/conda-bld/noarch/adbcug_adapter-0.0.0.dev-py_0.tar.bz2
+      - name: Conda Test
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda activate condabuild39
-          anaconda login --username aMahanna --password '${{ secrets.CONDA_PASSWORD }}'
-          anaconda upload /home/maxk/anaconda3/conda-bld/noarch/adbcug_adapter-0.0.0.dev-py_0.tar.bz2
+          conda create -n temp python=3.9
+          conda activate temp
+          conda list
+          conda install -c amahanna adbcug_adapter
+          conda list
