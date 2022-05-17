@@ -22,4 +22,4 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda activate condabuild39
-          conda build .
+          pip install .
