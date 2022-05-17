@@ -21,4 +21,9 @@ jobs:
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
+          conda env remove -n cbuild
+          conda env remove -n condabuild
+          conda env remove -n 3.10
+          conda env remove -n 3.6
           conda env list
+          conda info
