@@ -5,7 +5,6 @@ env:
   TESTS_DIR: tests
 jobs:
   condabuild:
-    needs: build
     runs-on: self-hosted
     defaults:
       run:
