@@ -22,4 +22,4 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda activate condabuild39
-          conda install -c nvidia -c rapidsai -c numba -c conda-forge cugraph cudatoolkit=11.5
+          conda install conda-build
