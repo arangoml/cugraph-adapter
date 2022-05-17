@@ -41,7 +41,7 @@ For a more detailed walk-through, access the official notebook on Colab: **TODO*
 
 ```py
 # Import the ArangoDB-cuGraph Adapter
-from adbcug_adapter.adapter import ADBCUG_Adapter
+from adbcug_adapter import ADBCUG_Adapter
 
 # Import the Python-Arango driver
 from arango import ArangoClient

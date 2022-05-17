@@ -1,11 +1,2 @@
-import logging
-import os
-
-logger = logging.getLogger(__package__)
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    f"[%(asctime)s] [{os.getpid()}] [%(levelname)s] - %(name)s: %(message)s",
-    "%Y/%m/%d %H:%M:%S %z",
-)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+from adbcug_adapter.adapter import ADBCUG_Adapter  # noqa: F401
+from adbcug_adapter.controller import ADBCUG_Controller  # noqa: F401
