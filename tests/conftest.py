@@ -6,7 +6,7 @@ from typing import Any
 from arango import ArangoClient
 from arango.database import StandardDatabase
 
-from adbcug_adapter.adapter import ADBCUG_Adapter
+from adbcug_adapter import ADBCUG_Adapter
 from adbcug_adapter.typings import Json
 
 PROJECT_DIR = Path(__file__).parent.parent

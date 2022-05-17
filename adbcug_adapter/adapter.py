@@ -9,10 +9,10 @@ from arango.result import Result
 from cudf import DataFrame
 from cugraph import MultiGraph as cuGraphMultiGraph
 
-from . import logger
 from .abc import Abstract_ADBCUG_Adapter
 from .controller import ADBCUG_Controller
 from .typings import ArangoMetagraph, CuGId, Json
+from .utils import logger
 
 
 class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):

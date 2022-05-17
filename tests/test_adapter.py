@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Set
 import pytest
 from cugraph import MultiGraph as cuGraphMultiGraph
 
-from adbcug_adapter.adapter import ADBCUG_Adapter
+from adbcug_adapter import ADBCUG_Adapter
 from adbcug_adapter.typings import ArangoMetagraph, Json
 
 from .conftest import adbcug_adapter, db
