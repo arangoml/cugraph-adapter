@@ -17,12 +17,8 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.9"
       - name: Conda Build
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
-          conda create -n cbuild python=3.9
-          conda activate cbuild
-          conda install -c nvidia -c rapidsai -c numba -c conda-forge cugraph cudatoolkit=11.5
-          conda info
-          conda list
+          conda env list
