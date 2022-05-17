@@ -20,7 +20,6 @@ setup(
     install_requires=[
         "python-arango>=7.3.4",
         "setuptools>=42",
-        "setuptools_scm[toml]>=3.4",
     ],
     extras_require={
         "dev": [
@@ -31,6 +30,7 @@ setup(
             "pytest>=6.0.0",
             "pytest-cov>=2.0.0",
             "coveralls>=3.3.1",
+            "setuptools_scm[toml]>=3.4",
             "types-setuptools",
         ],
     },
