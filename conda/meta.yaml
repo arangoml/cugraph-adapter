@@ -12,7 +12,7 @@ build:
   script: {{ PYTHON }} -m pip install . -vv
 
 source:
-  git_url: https://github.com/arangoml/cugraph-adapter
+  path: ..
 
 requirements:
   host:
