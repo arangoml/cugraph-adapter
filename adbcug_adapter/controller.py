@@ -12,7 +12,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
     transitioning from ArangoDB to cuGraph.
 
     You can derive your own custom ADBCUG_Controller, but it is not
-    necessary for Homogeneous graphs.
+    necessary.
     """
 
     def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> CuGId:
