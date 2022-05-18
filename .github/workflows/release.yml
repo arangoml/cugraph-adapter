@@ -74,11 +74,9 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda activate condabuild39
-          anaconda login --username aMahanna --password '${{ secrets.CONDA_PASSWORD }}'
+          anaconda logout
           conda config --set anaconda_upload yes
-          pip install auxlib
-          conda run pip install auxlib
-          conda build .
+          conda-build --token '${{ secrets.CONDA_TOKEN }}' --user arangodb .
 
   changelog:
     needs: release
