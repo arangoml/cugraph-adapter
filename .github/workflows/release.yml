@@ -76,6 +76,8 @@ jobs:
           conda activate condabuild39
           anaconda login --username aMahanna --password '${{ secrets.CONDA_PASSWORD }}'
           conda config --set anaconda_upload yes
+          pip install auxlib
+          conda run pip install auxlib
           conda build .
 
   changelog:
