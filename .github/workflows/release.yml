@@ -57,7 +57,7 @@ jobs:
 
   release:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     defaults:
       run:
         shell: bash -l {0}
@@ -70,19 +70,13 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.9"
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v2.1.1
-        with:
-          auto-update-conda: true
-          python-version: "3.9"
-      - name: Install Release Dependencies
-        run: conda install conda-build anaconda-client conda-verify -y
-      - name: Anaconda Login
-        run: anaconda login --username arangodb --password '${{ secrets.CONDA_PASSWORD }}'
-      - name: Conda Config Auto-Upload
-        run: conda config --set anaconda_upload yes
       - name: Conda Build
-        run: conda build .
+        run: |
+          source ~/anaconda3/etc/profile.d/conda.sh
+          conda activate condabuild39
+          anaconda login --username aMahanna --password '${{ secrets.CONDA_PASSWORD }}'
+          conda config --set anaconda_upload yes
+          conda build .
 
   changelog:
     needs: release
@@ -104,7 +98,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.8"
+          python-version: "3.9"
 
       - name: Install release packages
         run: pip install wheel gitchangelog pystache

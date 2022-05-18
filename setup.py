@@ -14,13 +14,12 @@ setup(
     keywords=["arangodb", "cugraph", "adapter"],
     packages=["adbcug_adapter"],
     include_package_data=True,
-    use_scm_version=True,
     python_requires=">=3.7",
     license="Apache Software License",
     install_requires=[
-        "python-arango>=7.3.4",
+        "requests>=2.27.1",
+        "python-arango>=7.3.3",
         "setuptools>=42",
-        "setuptools_scm[toml]>=3.4",
     ],
     extras_require={
         "dev": [

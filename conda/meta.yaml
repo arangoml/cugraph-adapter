@@ -21,9 +21,9 @@ requirements:
     - setuptools>=42
   run:
     - python>=3.7,<3.10
-    - rapidsai::cugraph>=21.12.00
-    - anaconda::cudatoolkit>=11.4
-    - conda-forge::python-arango>=7.3.4
+    - cugraph>=21.12.00
+    - cudatoolkit>=11.2
+    - python-arango>=7.3.3
     - setuptools>=42
 
 about:

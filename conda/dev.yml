@@ -1,10 +1,12 @@
 name: adbcug_adapter_dev
 channels:
+- nvidia
 - rapidsai
+- numba
 - conda-forge
 dependencies:
-- cudatoolkit=11.4
-- cugraph=21.12.00
+- cudatoolkit>=11.2
+- cugraph>=21.12.00
 - python>=3.7,<3.10
 - python-arango>=7.3.4
 - pip
