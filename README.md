@@ -59,9 +59,9 @@ cug_fraud_graph = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
 
 # Convert ArangoDB to cuGraph via Collection Names
 cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
-        "fraud-detection", 
-        {"account", "bank", "branch", "Class", "customer"}, # Specify vertex collections
-        {"accountHolder", "Relationship", "transaction"} # Specify edge collections
+    "fraud-detection", 
+    {"account", "bank", "branch", "Class", "customer"}, # Specify vertex collections
+    {"accountHolder", "Relationship", "transaction"} # Specify edge collections
 )
 ```
 
