@@ -15,7 +15,7 @@
 <a href="https://www.arangodb.com/" rel="arangodb.com">![](./examples/assets/logos/ArangoDB_logo.png)</a>
 <a href="https://github.com/rapidsai/cugraph" rel="github.com/rapidsai/cugraph"><img src="./examples/assets/logos/rapids_logo.png" width=30% height=30%></a>
 
-The ArangoDB-cuGraph Adapter exports Graphs from ArangoDB, a multi-model Graph Database, into RAPIDS cuGraph, a library of collective GPU-accelerated graph algorithms (vice-versa exports planned).
+The ArangoDB-cuGraph Adapter exports Graphs from ArangoDB, a multi-model Graph Database, into RAPIDS cuGraph, a library of collective GPU-accelerated graph algorithms.
 
 ## About RAPIDS cuGraph
 
@@ -23,10 +23,11 @@ While offering a similar API and set of graph algorithms to NetworkX, RAPIDS cuG
 
 ## Installation
 
-<u>Prerequisites</u>: A CUDA-capable GPU, [Anaconda](https://anaconda.org/), Python>=3.7
+<u>Prerequisites</u>: A CUDA-capable GPU
 
 #### Latest Release
 ```
+conda config --add channels arangodb
 conda install -c arangodb adbcug_adapter
 ```
 
@@ -65,14 +66,14 @@ cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
 )
 ```
 
-##  Development & Testing (TODO - Rework as a conda environment)
+##  Development & Testing
 
-Prerequisite: `conda`, `arangorestore`, `CUDA-capable GPU`, `Python>=3.7`
+Prerequisite: `arangorestore`, `CUDA-capable GPU`
 
 1. `git clone https://github.com/arangoml/cugraph-adapter.git`
 2. `cd cugraph-adapter`
 3. (create virtual environment of choice)
-4. `conda install -c arangodb adbcug_adapter`
+4. `conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph cudatoolkit`
 5. `conda run pip install -e .[dev]`
 6. (create an ArangoDB instance with method of choice)
 7. `pytest --url <> --dbName <> --username <> --password <>`

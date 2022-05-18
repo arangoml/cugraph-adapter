@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 from pathlib import Path
@@ -43,7 +44,7 @@ def pytest_configure(config: Any) -> None:
     )
 
     global adbcug_adapter
-    adbcug_adapter = ADBCUG_Adapter(db, verbose=True)
+    adbcug_adapter = ADBCUG_Adapter(db, logging_lvl=logging.DEBUG)
 
     arango_restore(con, "examples/data/fraud_dump")
     arango_restore(con, "examples/data/imdb_dump")
