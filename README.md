@@ -32,7 +32,7 @@ conda install -c arangodb adbcug_adapter
 
 #### Current State
 ```
-conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph cudatoolkit=11.5
+conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph cudatoolkit
 pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```
 
