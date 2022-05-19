@@ -39,7 +39,7 @@ pip install git+https://github.com/arangoml/cugraph-adapter.git
 
 ##  Quickstart
 
-For a more detailed walk-through, access the official notebook on Colab: **TODO**
+For a more detailed walk-through, access the official notebook on Colab: <a href="https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 ```py
 # Import the ArangoDB-cuGraph Adapter
