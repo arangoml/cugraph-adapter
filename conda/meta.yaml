@@ -1,5 +1,5 @@
 # https://docs.conda.io/projects/conda-build/en/latest/resources/define-metadata.html
-{% set name = "adbcug_adapter" %}
+{% set name = "adbcug-adapter" %}
 {% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0.dev').lstrip('v') %}
 
 package:
