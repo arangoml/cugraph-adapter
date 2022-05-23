@@ -100,6 +100,8 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :rtype: str
         """
         # In this case, we assume that **cug_node_id** is already a valid ArangoDB _id
+        # Otherwise, user must override this function if custom ArangoDB _key
+        # values are required for nodes
         adb_vertex_id: str = str(cug_node_id)
         return adb_vertex_id.split("/")[1]
 
@@ -129,10 +131,11 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :return: A valid ArangoDB _key value.
         :rtype: str
         """
-        # User must override this function if custom ArangoDB _key values are required
+        # User must override this function if custom ArangoDB _key values are
+        # required for edges
         raise NotImplementedError  # pragma: no cover
 
-    def _string_to_arangodb_key_helper(self, string: str) -> str:  # pragma: no cover
+    def _string_to_arangodb_key_helper(self, string: str) -> str:
         """Given a string, derive a valid ArangoDB _key string.
 
         :param string: A (possibly) invalid _key string value.

@@ -8,7 +8,13 @@ from cugraph import MultiGraph as CUGMultiGraph
 from adbcug_adapter import ADBCUG_Adapter
 from adbcug_adapter.typings import ADBMetagraph, Json
 
-from .conftest import adbcug_adapter, db, get_divisibility_graph
+from .conftest import (
+    adbcug_adapter,
+    custom_adbcug_adapter,
+    db,
+    get_bipartite_graph,
+    get_divisibility_graph,
+)
 
 
 def test_validate_attributes() -> None:
@@ -153,7 +159,21 @@ def test_adb_graph_to_cug(
             ],
             100,
             True,
-        )
+        ),
+        (
+            custom_adbcug_adapter,
+            "SampleBipartiteGraph",
+            get_bipartite_graph(),
+            [
+                {
+                    "edge_collection": "_to_",
+                    "from_vertex_collections": ["col_a"],
+                    "to_vertex_collections": ["col_b"],
+                }
+            ],
+            1,
+            True,
+        ),
     ],
 )
 def test_cug_to_adb(

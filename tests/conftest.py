@@ -11,12 +11,14 @@ from cugraph import Graph as CUGGraph
 from cugraph import MultiGraph as CUGMultiGraph
 
 from adbcug_adapter import ADBCUG_Adapter
-from adbcug_adapter.typings import Json
+from adbcug_adapter.controller import ADBCUG_Controller
+from adbcug_adapter.typings import CUGId, Json
 
 PROJECT_DIR = Path(__file__).parent.parent
 
 db: StandardDatabase
 adbcug_adapter: ADBCUG_Adapter
+custom_adbcug_adapter: ADBCUG_Adapter
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -46,8 +48,9 @@ def pytest_configure(config: Any) -> None:
         con["dbName"], con["username"], con["password"], verify=True
     )
 
-    global adbcug_adapter
+    global adbcug_adapter, custom_adbcug_adapter
     adbcug_adapter = ADBCUG_Adapter(db, logging_lvl=logging.DEBUG)
+    custom_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
 
     arango_restore(con, "examples/data/fraud_dump")
     arango_restore(con, "examples/data/imdb_dump")
@@ -105,3 +108,20 @@ def get_divisibility_graph() -> CUGGraph:
     )
 
     return cug_graph
+
+
+def get_bipartite_graph() -> CUGGraph:
+    # This graph has nodes with valid ArangoDB collection names,
+    # but has invalid node _key values
+    edges = DataFrame(
+        [("col_a/<valid> {key]???", "col_b/~!v!a!l!i!dk!e!y~")],
+        columns=["src", "dst"],
+    )
+
+    cug_graph = CUGGraph()
+    cug_graph.from_cudf_edgelist(edges, source="src", destination="dst", renumber=False)
+
+
+class Custom_ADBCUG_Controller(ADBCUG_Controller):
+    def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
+        return self._string_to_arangodb_key_helper(cug_node_id.spit("/")[1])
