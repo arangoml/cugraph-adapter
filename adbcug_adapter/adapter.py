@@ -194,12 +194,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :type batch_size: int
         :param keyify_nodes: If set to True, will create custom node keys based on the
             behavior of ADBCUG_Controller._keyify_cugraph_node().
-            Otherwise, ArangoDB _key values for vertices will range from 0 to N-1,
+            Otherwise, ArangoDB _key values for vertices will range from 1 to N,
             where N is the number of cugraph nodes.
         :type keyify_nodes: bool
         :param keyify_edges: If set to True, will create custom edge keys based on
             the behavior of the ADBNX_Controller._keyify_cugraph_edge().
-            Otherwise, ArangoDB _key values for edges will range from 0 to E-1,
+            Otherwise, ArangoDB _key values for edges will range from 1 to E,
             where E is the number of cugraph edges.
         :type keyify_edges: bool
         :return: The ArangoDB Graph API wrapper.
@@ -238,7 +238,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         cug_id: CUGId
         cug_nodes = cug_graph.nodes().values_host
         logger.debug(f"Preparing {len(cug_nodes)} cugraph nodes")
-        for i, cug_id in enumerate(cug_nodes):
+        for i, cug_id in enumerate(cug_nodes, 1):
             col = (
                 adb_v_cols[0]
                 if has_one_vcol
@@ -265,7 +265,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         to_node_id: CUGId
         logger.debug(f"Preparing {cug_graph.number_of_edges()} cugraph edges")
         for i, (from_node_id, to_node_id, *weight) in enumerate(
-            cug_graph.view_edge_list().values_host
+            cug_graph.view_edge_list().values_host, 1
         ):
             from_n = cug_map[from_node_id]
             to_n = cug_map[to_node_id]
