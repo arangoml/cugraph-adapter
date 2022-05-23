@@ -124,4 +124,4 @@ def get_bipartite_graph() -> CUGGraph:
 
 class Custom_ADBCUG_Controller(ADBCUG_Controller):
     def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
-        return self._string_to_arangodb_key_helper(cug_node_id.spit("/")[1])
+        return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
