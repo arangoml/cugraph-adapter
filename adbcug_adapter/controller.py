@@ -22,8 +22,9 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         graph.
 
         Given an ArangoDB vertex, you can modify it before it gets inserted
-        into the cuGraph graph, and/or derive a custom node id for cuGraph to use.
-        In most cases, it is only required to return the ArangoDB _id of the vertex.
+        into the cuGraph graph, and/or derive a custom node id for cuGraph
+        to use by updating the "_id" attribute of the vertex (otherwise the
+        vertex's current "_id" value will be used)
 
         :param adb_vertex: The ArangoDB vertex object to (optionally) modify.
         :type adb_vertex: adbcug_adapter.typings.Json
@@ -38,9 +39,9 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         """Given a cuGraph node, and a list of ArangoDB vertex collections defined,
         identify which ArangoDB vertex collection it should belong to.
 
-        NOTE: You must override this function if your cuGraph graph is NOT Homogeneous
-        or does NOT comply to ArangoDB standards (i.e the vertex IDs are not formatted
-        like "{collection}/{key}").
+        NOTE: You must override this function if len(**adb_v_cols**) > 1
+        OR **cug_node_id* does NOT comply to ArangoDB standards
+        (i.e "{collection}/{key}").
 
         :param cug_node_id: The cuGraph ID of the vertex.
         :type cug_node_id: adbcug_adapter.typings.CUGId
@@ -64,8 +65,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         edge collections defined, identify which ArangoDB edge collection it
         should belong to.
 
-        NOTE #1: You must override this function if your cuGraph graph is NOT
-        Homogeneous.
+        NOTE: You must override this function if len(**adb_e_cols**) > 1.
 
         NOTE #2: The pair of associated cuGraph nodes can be accessed
         by the **from_cug_node** & **to_cug_node** parameters, and are guaranteed
@@ -82,7 +82,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :return: The ArangoDB collection name
         :rtype: str
         """
-        # User must override this function if cuGraph graph is not Homogeneous
+        # User must override this function if len(adb_e_cols) > 1
         raise NotImplementedError  # pragma: no cover
 
     def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
