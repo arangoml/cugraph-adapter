@@ -166,7 +166,7 @@ def test_adb_graph_to_cug(
             get_bipartite_graph(),
             [
                 {
-                    "edge_collection": "_to_",
+                    "edge_collection": "to",
                     "from_vertex_collections": ["col_a"],
                     "to_vertex_collections": ["col_b"],
                 }
