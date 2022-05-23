@@ -187,7 +187,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :type cug_graph: cugraph.classes.graph.Graph
         :param edge_definitions: List of edge definitions, where each edge definition
             entry is a dictionary with fields "edge_collection",
-            "from_nertex_collections" and "to_nertex_collections"
+            "from_vertex_collections" and "to_vertex_collections"
             (see below for example).
         :type edge_definitions: List[adbcug_adapter.typings.Json]
         :param batch_size: The maximum number of documents to insert at once
@@ -211,8 +211,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         [
             {
                 "edge_collection": "teach",
-                "from_nertex_collections": ["teachers"],
-                "to_nertex_collections": ["lectures"]
+                "from_vertex_collections": ["teachers"],
+                "to_vertex_collections": ["lectures"]
             }
         ]
         """
@@ -235,8 +235,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 self.__db.create_collection(e_col, edge=True)
 
             v_col: str
-            from_collections = set(e_d["from_nertex_collections"])
-            to_collections = set(e_d["to_nertex_collections"])
+            from_collections = set(e_d["from_vertex_collections"])
+            to_collections = set(e_d["to_vertex_collections"])
             for v_col in from_collections | to_collections:
                 adb_v_cols.add(v_col)
 
