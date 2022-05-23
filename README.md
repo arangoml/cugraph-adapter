@@ -42,15 +42,20 @@ pip install git+https://github.com/arangoml/cugraph-adapter.git
 For a more detailed walk-through, access the official notebook on Colab: <a href="https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 ```py
-# Import the ArangoDB-cuGraph Adapter
-from adbcug_adapter import ADBCUG_Adapter
+import cudf
+import cugraph
 
 # Import the Python-Arango driver
 from arango import ArangoClient
 
+# Import the ArangoDB-cuGraph Adapter
+from adbcug_adapter import ADBCUG_Adapter
+
 # Instantiate driver client based on user preference
 # Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint for example purposes
-db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="openSesame")
+db = ArangoClient(hosts="http://localhost:8529").db(
+    "_system", username="root", password="openSesame"
+)
 
 # Instantiate your ADBCUG Adapter with driver client
 adbcug_adapter = ADBCUG_Adapter(db)
@@ -60,10 +65,41 @@ cug_fraud_graph = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
 
 # Convert ArangoDB to cuGraph via Collection Names
 cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
-    "fraud-detection", 
-    {"account", "bank", "branch", "Class", "customer"}, # Specify vertex collections
-    {"accountHolder", "Relationship", "transaction"} # Specify edge collections
+    "fraud-detection",
+    {"account", "bank", "branch", "Class", "customer"},  # Specify vertex collections
+    {"accountHolder", "Relationship", "transaction"},  # Specify edge collections
 )
+
+# Convert cuGraph to ArangoDB:
+## 1) Create a sample cuGraph
+cug_divisibility_graph = cugraph.MultiGraph(directed=True)
+cug_divisibility_graph.from_cudf_edgelist(
+    cudf.DataFrame(
+        [
+            (f"numbers/{j}", f"numbers/{i}", j / i)
+            for i in range(1, 101)
+            for j in range(1, 101)
+            if j % i == 0
+        ],
+        columns=["src", "dst", "weight"],
+    ),
+    source="src",
+    destination="dst",
+    edge_attr="weight",
+    renumber=False,
+)
+
+## 2) Create ArangoDB Edge Definitions
+edge_definitions = [
+    {
+        "edge_collection": "is_divisible_by",
+        "from_vertex_collections": ["numbers"],
+        "to_vertex_collections": ["numbers"],
+    }
+]
+
+## 3) Convert cuGraph to ArangoDB
+adb_graph = adbcug_adapter.cugraph_to_arangodb("DivisibilityGraph", cug_graph, edge_definitions)
 ```
 
 ##  Development & Testing
