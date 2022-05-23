@@ -254,7 +254,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         adb_documents: DefaultDict[str, List[Json]] = defaultdict(list)
 
         cug_id: CUGId
-        logger.debug(f"Preparing {cug_graph.number_of_vertices()} cugraph nodes")
+        logger.debug(f"Preparing {str(cug_graph.number_of_vertices())} cugraph nodes")
         for i, cug_id in enumerate(cug_graph.nodes().values_host):
             col = homogenous_v_col or self.__cntrl._identify_cugraph_node(
                 cug_id, adb_v_cols
@@ -278,7 +278,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         from_node_id: CUGId
         to_node_id: CUGId
-        logger.debug(f"Preparing {cug_graph.number_of_edges()} cugraph edges")
+        logger.debug(f"Preparing {str(cug_graph.number_of_edges())} cugraph edges")
         for i, (from_node_id, to_node_id, *weight) in enumerate(
             cug_graph.view_edge_list().values_host
         ):
