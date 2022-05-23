@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Any, Set, Tuple
+from typing import Set
 
 from .abc import Abstract_ADBCUG_Controller
 from .typings import CUGId, Json
