@@ -226,7 +226,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         adb_graph: ADBGraph = self.__db.create_graph(name, edge_definitions)
 
         adb_v_cols = adb_graph.vertex_collections()
-        adb_e_cols = {e_d["edge_collection"] for e_d in edge_definitions}
+        adb_e_cols = [e_d["edge_collection"] for e_d in edge_definitions]
 
         is_homogeneous = len(adb_v_cols + adb_e_cols) == 2
         logger.debug(f"Is graph '{name}' homogenous? {is_homogeneous}")

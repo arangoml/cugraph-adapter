@@ -177,12 +177,10 @@ def assert_arangodb_data(
     keyify_nodes: bool,
 ) -> None:
     cug_map = dict()
-    adb_v_cols = set()
-    adb_e_cols = set()
 
     edge_definitions = adb_g.edge_definitions()
     adb_v_cols = adb_g.vertex_collections()
-    adb_e_cols = {e_d["edge_collection"] for e_d in edge_definitions}
+    adb_e_cols = [e_d["edge_collection"] for e_d in edge_definitions]
 
     is_homogeneous = len(adb_v_cols + adb_e_cols) == 2
 

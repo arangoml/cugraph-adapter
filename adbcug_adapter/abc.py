@@ -70,14 +70,14 @@ class Abstract_ADBCUG_Controller(ABC):
     def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> None:
         raise NotImplementedError  # pragma: no cover
 
-    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: Set[str]) -> str:
+    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
         raise NotImplementedError  # pragma: no cover
 
     def _identify_cugraph_edge(
         self,
         from_cug_node: Json,
         to_cug_node: Json,
-        adb_e_cols: Set[str],
+        adb_e_cols: List[str],
     ) -> str:
         raise NotImplementedError  # pragma: no cover
 
