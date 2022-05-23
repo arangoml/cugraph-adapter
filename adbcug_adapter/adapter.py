@@ -225,12 +225,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         self.__db.delete_graph(name, ignore_missing=True)
         adb_graph: ADBGraph = self.__db.create_graph(name, edge_definitions)
 
-        adb_v_cols = set(adb_graph.vertex_collections())
+        adb_v_cols = adb_graph.vertex_collections()
         adb_e_cols = {e_d["edge_collection"] for e_d in edge_definitions}
 
-        is_homogeneous = len(adb_v_cols | adb_e_cols) == 2
-        homogenous_v_col = adb_v_cols.pop() if is_homogeneous else None
-        homogenous_e_col = adb_e_cols.pop() if is_homogeneous else None
+        is_homogeneous = len(adb_v_cols + adb_e_cols) == 2
         logger.debug(f"Is graph '{name}' homogenous? {is_homogeneous}")
 
         cug_map = dict()  # Maps cuGraph node IDs to ArangoDB vertex IDs
@@ -240,8 +238,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         cug_nodes = cug_graph.nodes().values_host
         logger.debug(f"Preparing {len(cug_nodes)} cugraph nodes")
         for i, cug_id in enumerate(cug_nodes):
-            col = homogenous_v_col or self.__cntrl._identify_cugraph_node(
-                cug_id, adb_v_cols
+            col = (
+                adb_v_cols[0]
+                if is_homogeneous
+                else self.__cntrl._identify_cugraph_node(cug_id, adb_v_cols)
             )
             key = (
                 self.__cntrl._keyify_cugraph_node(cug_id, col)
@@ -269,8 +269,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             from_n = cug_map[from_node_id]
             to_n = cug_map[to_node_id]
 
-            col = homogenous_e_col or self.__cntrl._identify_cugraph_edge(
-                from_n, to_n, adb_e_cols
+            col = (
+                adb_e_cols[0]
+                if is_homogeneous
+                else self.__cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
             )
             key = (
                 self.__cntrl._keyify_cugraph_edge(from_n, to_n, col)

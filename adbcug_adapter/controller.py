@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Set
+from typing import List
 
 from .abc import Abstract_ADBCUG_Controller
 from .typings import CUGId, Json
@@ -34,8 +34,8 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         """
         return
 
-    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: Set[str]) -> str:
-        """Given a cuGraph node, and a set of ArangoDB vertex collections defined,
+    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
+        """Given a cuGraph node, and a list of ArangoDB vertex collections defined,
         identify which ArangoDB vertex collection it should belong to.
 
         NOTE: You must override this function if your cuGraph graph is NOT Homogeneous
@@ -46,7 +46,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :type cug_node_id: adbcug_adapter.typings.CUGId
         :param adb_v_cols: All ArangoDB vertex collections specified
             by the **edge_definitions** parameter of cugraph_to_arangodb()
-        :type adb_v_cols: Set[str]
+        :type adb_v_cols: List[str]
         :return: The ArangoDB collection name
         :rtype: str
         """
@@ -58,9 +58,9 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         self,
         from_cug_node: Json,
         to_cug_node: Json,
-        adb_e_cols: Set[str],
+        adb_e_cols: List[str],
     ) -> str:
-        """Given a pair of connected cuGraph nodes, and a set of ArangoDB
+        """Given a pair of connected cuGraph nodes, and a list of ArangoDB
         edge collections defined, identify which ArangoDB edge collection it
         should belong to.
 
@@ -78,7 +78,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :param adb_e_cols: All ArangoDB edge collections specified
             by the **edge_definitions** parameter of
             ADBCUG_Adapter.cugraph_to_arangodb()
-        :type adb_e_cols: Set[str]
+        :type adb_e_cols: List[str]
         :return: The ArangoDB collection name
         :rtype: str
         """
@@ -132,7 +132,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         # User must override this function if custom ArangoDB _key values are required
         raise NotImplementedError  # pragma: no cover
 
-    def _string_to_arangodb_key_helper(self, string: str) -> str: # pragma: no cover
+    def _string_to_arangodb_key_helper(self, string: str) -> str:  # pragma: no cover
         """Given a string, derive a valid ArangoDB _key string.
 
         :param string: A (possibly) invalid _key string value.

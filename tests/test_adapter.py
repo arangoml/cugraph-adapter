@@ -181,21 +181,16 @@ def assert_arangodb_data(
     adb_e_cols = set()
 
     edge_definitions = adb_g.edge_definitions()
-    for e_d in edge_definitions:
-        adb_e_cols.add(e_d["edge_collection"])
+    adb_v_cols = adb_g.vertex_collections()
+    adb_e_cols = {e_d["edge_collection"] for e_d in edge_definitions}
 
-        from_collections = set(e_d["from_vertex_collections"])
-        to_collections = set(e_d["to_vertex_collections"])
-        for v_col in from_collections | to_collections:
-            adb_v_cols.add(v_col)
-
-    is_homogeneous = len(adb_v_cols | adb_e_cols) == 2
-    homogenous_v_col = adb_v_cols.pop() if is_homogeneous else None
-    homogenous_e_col = adb_e_cols.pop() if is_homogeneous else None
+    is_homogeneous = len(adb_v_cols + adb_e_cols) == 2
 
     for i, cug_id in enumerate(cug_g.nodes().values_host):
-        col = homogenous_v_col or adapter.cntrl._identify_cugraph_node(
-            cug_id, adb_v_cols
+        col = (
+            adb_v_cols[0]
+            if is_homogeneous
+            else adapter.cntrl._identify_cugraph_node(cug_id, adb_v_cols)
         )
         key = (
             adapter.cntrl._keyify_cugraph_node(cug_id, col) if keyify_nodes else str(i)
@@ -215,8 +210,10 @@ def assert_arangodb_data(
         from_n = cug_map[from_node_id]
         to_n = cug_map[to_node_id]
 
-        col = homogenous_e_col or adapter.cntrl._identify_cugraph_edge(
-            from_n, to_n, adb_e_cols
+        col = (
+            adb_e_cols[0]
+            if is_homogeneous
+            else adapter.cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
         )
         adb_edges = adb_g.edge_collection(col).find(
             {
