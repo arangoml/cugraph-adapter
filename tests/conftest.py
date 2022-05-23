@@ -6,6 +6,9 @@ from typing import Any
 
 from arango import ArangoClient
 from arango.database import StandardDatabase
+from cudf import DataFrame
+from cugraph import Graph as CUGGraph
+from cugraph import MultiGraph as CUGMultiGraph
 
 from adbcug_adapter import ADBCUG_Adapter
 from adbcug_adapter.typings import Json
@@ -83,3 +86,22 @@ def arango_restore(con: Json, path_to_data: str) -> None:
         cwd=f"{PROJECT_DIR}/tests",
         shell=True,
     )
+
+
+def get_divisibility_graph() -> CUGGraph:
+    edges = DataFrame(
+        [
+            (f"numbers/{j}", f"numbers/{i}", j / i)
+            for i in range(1, 101)
+            for j in range(1, 101)
+            if j % i == 0
+        ],
+        columns=["src", "dst", "weight"],
+    )
+
+    cug_graph = CUGMultiGraph(directed=True)
+    cug_graph.from_cudf_edgelist(
+        edges, source="src", destination="dst", edge_attr="weight", renumber=False
+    )
+
+    return cug_graph

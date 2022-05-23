@@ -1,8 +1,8 @@
-__all__ = ["Json", "ArangoMetagraph", "CUGId"]
+__all__ = ["Json", "ADBMetagraph", "CUGId"]
 
 from typing import Any, Dict, Set, Tuple, Union
 
 Json = Dict[str, Any]
-ArangoMetagraph = Dict[str, Dict[str, Set[str]]]
+ADBMetagraph = Dict[str, Dict[str, Set[str]]]
 
 CUGId = Union[int, float, bool, str, Tuple[Any, ...]]

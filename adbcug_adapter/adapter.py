@@ -14,7 +14,7 @@ from cugraph import MultiGraph as CUGMultiGraph
 
 from .abc import Abstract_ADBCUG_Adapter
 from .controller import ADBCUG_Controller
-from .typings import ArangoMetagraph, CUGId, Json
+from .typings import ADBMetagraph, CUGId, Json
 from .utils import logger
 
 
@@ -68,8 +68,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
     def arangodb_to_cugraph(
         self,
         name: str,
-        metagraph: ArangoMetagraph,
-        is_keep: bool = True,
+        metagraph: ADBMetagraph,
         **query_options: Any,
     ) -> CUGMultiGraph:
         """Create a cuGraph graph from graph attributes.
@@ -77,10 +76,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :type name: str
         :param metagraph: An object defining vertex & edge collections to import to
             cuGraph, along with their associated attributes to keep.
-        :type metagraph: adbcug_adapter.typings.ArangoMetagraph
-        :param is_keep: Only keep the document attributes specified in **metagraph**
-            when importing to cuGraph (is True by default).
-        :type is_keep: bool
+        :type metagraph: adbcug_adapter.typings.ADBMetagraph
         :param query_options: Keyword arguments to specify AQL query options when
             fetching documents from the ArangoDB instance.
         :type query_options: Any
@@ -108,12 +104,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         # Maps ArangoDB vertex IDs to cuGraph node IDs
         adb_map: Dict[str, Dict[str, Union[CUGId, str]]] = dict()
-        cg_edges: List[Tuple[CUGId, CUGId]] = []
+        cug_edges: List[Tuple[CUGId, CUGId]] = []
 
         adb_v: Json
         for col, atribs in metagraph["vertexCollections"].items():
             logger.debug(f"Preparing '{col}' vertices")
-            for adb_v in self.__fetch_adb_docs(col, atribs, is_keep, query_options):
+            for adb_v in self.__fetch_adb_docs(col, atribs, query_options):
                 adb_id: str = adb_v["_id"]
                 self.__cntrl._prepare_arangodb_vertex(adb_v, col)
                 cug_id: str = adb_v["_id"]
@@ -122,15 +118,20 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         adb_e: Json
         for col, atribs in metagraph["edgeCollections"].items():
             logger.debug(f"Preparing '{col}' edges")
-            for adb_e in self.__fetch_adb_docs(col, atribs, is_keep, query_options):
+            for adb_e in self.__fetch_adb_docs(col, atribs, query_options):
                 from_node_id: CUGId = adb_map[adb_e["_from"]]["cug_id"]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]["cug_id"]
-                cg_edges.append((from_node_id, to_node_id))
+                cug_edges.append((from_node_id, to_node_id, adb_e.get("weight", 0)))
 
-        logger.debug(f"Inserting {len(cg_edges)} edges")
-        srcs, dsts = zip(*cg_edges)
+        logger.debug(f"Inserting {len(cug_edges)} edges")
         cug_graph = CUGMultiGraph(directed=True)
-        cug_graph.from_cudf_edgelist(DataFrame({"source": srcs, "destination": dsts}))
+        cug_graph.from_cudf_edgelist(
+            DataFrame(cug_edges, columns=["src", "dst", "weight"]),
+            source="src",
+            destination="dst",
+            edge_attr="weight",
+            renumber=False,
+        )
 
         logger.info(f"Created cuGraph '{name}' Graph")
         return cug_graph
@@ -155,12 +156,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :return: A Multi-Directed cuGraph Graph.
         :rtype: cugraph.structure.graph_classes.MultiDiGraph
         """
-        metagraph: ArangoMetagraph = {
+        metagraph: ADBMetagraph = {
             "vertexCollections": {col: set() for col in v_cols},
             "edgeCollections": {col: set() for col in e_cols},
         }
 
-        return self.arangodb_to_cugraph(name, metagraph, is_keep=True, **query_options)
+        return self.arangodb_to_cugraph(name, metagraph, **query_options)
 
     def arangodb_graph_to_cugraph(
         self, name: str, **query_options: Any
@@ -268,7 +269,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         cug_id: CUGId
         logger.debug(f"Preparing {cug_graph.number_of_vertices()} cugraph nodes")
-        for i, cug_id in enumerate(cug_graph.nodes()):
+        for i, cug_id in enumerate(cug_graph.nodes().values_host):
             col = homogenous_v_col or self.__cntrl._identify_cugraph_node(
                 cug_id, adb_v_cols
             )
@@ -286,14 +287,15 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 "adb_key": key,
             }
 
-            self.__insert_adb_docs(
-                col, adb_documents[col], {"_id": adb_v_id}, batch_size
-            )
+            adb_vertex = {"_id": adb_v_id}
+            self.__insert_adb_docs(col, adb_documents[col], adb_vertex, batch_size)
 
         from_node_id: CUGId
         to_node_id: CUGId
         logger.debug(f"Preparing {cug_graph.number_of_edges()} cugraph edges")
-        for i, (from_node_id, to_node_id) in enumerate(cug_graph.edges()):
+        for i, (from_node_id, to_node_id, *weight) in enumerate(
+            cug_graph.view_edge_list().values_host
+        ):
             from_n = cug_map[from_node_id]
             to_n = cug_map[to_node_id]
 
@@ -306,14 +308,19 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 else str(i)
             )
 
+            adb_edge = {
+                "_id": col + "/" + key,
+                "_from": from_n["adb_id"],
+                "_to": to_n["adb_id"],
+            }
+
+            if cug_graph.is_weighted():
+                adb_edge["weight"] = weight[0]
+
             self.__insert_adb_docs(
                 col,
                 adb_documents[col],
-                {
-                    "_id": col + "/" + key,
-                    "_from": from_n["adb_id"],
-                    "_to": to_n["adb_id"],
-                },
+                adb_edge,
                 batch_size,
             )
 
@@ -343,18 +350,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             missing_attributes = valid_attributes - attributes
             raise ValueError(f"Missing {type} attributes: {missing_attributes}")
 
-    def __fetch_adb_docs(
-        self, col: str, attributes: Set[str], is_keep: bool, query_options: Any
-    ) -> Result[Cursor]:
+    def __fetch_adb_docs(self, col: str, query_options: Any) -> Result[Cursor]:
         """Fetches ArangoDB documents within a collection.
 
         :param col: The ArangoDB collection.
         :type col: str
-        :param attributes: The set of document attributes.
-        :type attributes: Set[str]
-        :param is_keep: Only keep the attributes specified in **attributes** when
-            returning the document. Otherwise, all document attributes are included.
-        :type is_keep: bool
         :param query_options: Keyword arguments to specify AQL query options when
             fetching documents from the ArangoDB instance.
         :type query_options: Any
@@ -363,13 +363,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         """
         aql = f"""
             FOR doc IN {col}
-                RETURN {is_keep} ?
-                    MERGE(
-                        KEEP(doc, {list(attributes)}),
-                        {{"_id": doc._id}},
-                        doc._from ? {{"_from": doc._from, "_to": doc._to}}: {{}}
-                    )
-                : doc
+                RETURN doc
         """
 
         return self.__db.aql.execute(aql, **query_options)

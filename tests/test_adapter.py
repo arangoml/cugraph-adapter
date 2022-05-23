@@ -6,9 +6,9 @@ from cugraph import Graph as CUGGraph
 from cugraph import MultiGraph as CUGMultiGraph
 
 from adbcug_adapter import ADBCUG_Adapter
-from adbcug_adapter.typings import ArangoMetagraph, Json
+from adbcug_adapter.typings import ADBMetagraph, Json
 
-from .conftest import adbcug_adapter, db
+from .conftest import adbcug_adapter, db, get_divisibility_graph
 
 
 def test_validate_attributes() -> None:
@@ -76,8 +76,8 @@ def test_validate_constructor() -> None:
         ),
     ],
 )
-def test_adb_to_cg(
-    adapter: ADBCUG_Adapter, name: str, metagraph: ArangoMetagraph
+def test_adb_to_cug(
+    adapter: ADBCUG_Adapter, name: str, metagraph: ADBMetagraph
 ) -> None:
     cug_g = adapter.arangodb_to_cugraph(name, metagraph)
     assert_cugraph_data(cug_g, metagraph, True)
@@ -94,7 +94,7 @@ def test_adb_to_cg(
         )
     ],
 )
-def test_adb_collections_to_cg(
+def test_adb_collections_to_cug(
     adapter: ADBCUG_Adapter, name: str, v_cols: Set[str], e_cols: Set[str]
 ) -> None:
     cug_g = adapter.arangodb_collections_to_cugraph(
@@ -115,7 +115,7 @@ def test_adb_collections_to_cg(
     "adapter, name, edge_definitions",
     [(adbcug_adapter, "fraud-detection", None)],
 )
-def test_adb_graph_to_cg(
+def test_adb_graph_to_cug(
     adapter: ADBCUG_Adapter, name: str, edge_definitions: List[Json]
 ) -> None:
     # Re-create the graph if defintions are provided
@@ -139,7 +139,22 @@ def test_adb_graph_to_cg(
 
 @pytest.mark.parametrize(
     "adapter, name, cug_g, edge_definitions, batch_size, keyify_nodes",
-    [],
+    [
+        (
+            adbcug_adapter,
+            "DivisibilityGraph",
+            get_divisibility_graph(),
+            [
+                {
+                    "edge_collection": "is_divisible_by",
+                    "from_vertex_collections": ["numbers"],
+                    "to_vertex_collections": ["numbers"],
+                }
+            ],
+            100,
+            True,
+        )
+    ],
 )
 def test_cug_to_adb(
     adapter: ADBCUG_Adapter,
@@ -178,9 +193,13 @@ def assert_arangodb_data(
     homogenous_v_col = adb_v_cols.pop() if is_homogeneous else None
     homogenous_e_col = adb_e_cols.pop() if is_homogeneous else None
 
-    for i, cug_id in enumerate(cug_g.nodes()):
-        col = homogenous_v_col or adapter.cntrl._identify_cug_node(cug_id, adb_v_cols)
-        key = adapter.cntrl._keyify_cug_node(cug_id, col) if keyify_nodes else str(i)
+    for i, cug_id in enumerate(cug_g.nodes().values_host):
+        col = homogenous_v_col or adapter.cntrl._identify_cugraph_node(
+            cug_id, adb_v_cols
+        )
+        key = (
+            adapter.cntrl._keyify_cugraph_node(cug_id, col) if keyify_nodes else str(i)
+        )
 
         adb_v_id = col + "/" + key
         cug_map[cug_id] = {
@@ -192,11 +211,11 @@ def assert_arangodb_data(
 
         assert adb_g.vertex_collection(col).has(key)
 
-    for from_node_id, to_node_id in cug_g.edges():
+    for from_node_id, to_node_id, *weight in cug_g.view_edge_list().values_host:
         from_n = cug_map[from_node_id]
         to_n = cug_map[to_node_id]
 
-        col = homogenous_e_col or adapter.cntrl._identify_cug_edge(
+        col = homogenous_e_col or adapter.cntrl._identify_cugraph_edge(
             from_n, to_n, adb_e_cols
         )
         adb_edges = adb_g.edge_collection(col).find(
@@ -209,9 +228,7 @@ def assert_arangodb_data(
         assert len(adb_edges) > 0
 
 
-def assert_cugraph_data(
-    cug_g: CUGMultiGraph, metagraph: ArangoMetagraph, is_keep: bool = False
-) -> None:
+def assert_cugraph_data(cug_g: CUGMultiGraph, metagraph: ADBMetagraph) -> None:
 
     adb_edge: Json
     df = cug_g.to_pandas_edgelist()

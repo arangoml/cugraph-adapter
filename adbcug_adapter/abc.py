@@ -8,7 +8,7 @@ from arango.graph import Graph as ADBGraph
 from cugraph import Graph as CUGGraph
 from cugraph import MultiGraph as CUGMultiGraph
 
-from .typings import ArangoMetagraph, CUGId, Json
+from .typings import ADBMetagraph, CUGId, Json
 
 
 class Abstract_ADBCUG_Adapter(ABC):
@@ -18,8 +18,7 @@ class Abstract_ADBCUG_Adapter(ABC):
     def arangodb_to_cugraph(
         self,
         name: str,
-        metagraph: ArangoMetagraph,
-        is_keep: bool = True,
+        metagraph: ADBMetagraph,
         **query_options: Any,
     ) -> CUGMultiGraph:
         raise NotImplementedError  # pragma: no cover
@@ -92,3 +91,24 @@ class Abstract_ADBCUG_Controller(ABC):
         col: str,
     ) -> str:
         raise NotImplementedError  # pragma: no cover
+
+    @property
+    def VALID_KEY_CHARS(self) -> Set[str]:
+        return {
+            "_",
+            "-",
+            ":",
+            ".",
+            "@",
+            "(",
+            ")",
+            "+",
+            ",",
+            "=",
+            ";",
+            "$",
+            "!",
+            "*",
+            "'",
+            "%",
+        }
