@@ -71,11 +71,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         metagraph: ADBMetagraph,
         **query_options: Any,
     ) -> CUGMultiGraph:
-        """Create a cuGraph graph from graph attributes.
+        """Create a cuGraph graph from an ArangoDB metagraph. 
+
         :param name: The cuGraph graph name.
         :type name: str
         :param metagraph: An object defining vertex & edge collections to import to
-            cuGraph, along with their associated attributes to keep.
+            cuGraph.
         :type metagraph: adbcug_adapter.typings.ADBMetagraph
         :param query_options: Keyword arguments to specify AQL query options when
             fetching documents from the ArangoDB instance.
@@ -83,21 +84,6 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :return: A Multi-Directed cuGraph Graph.
         :rtype: cugraph.structure.graph_classes.MultiDiGraph
         :raise ValueError: If missing required keys in metagraph
-        Here is an example entry for parameter **metagraph**:
-        .. code-block:: python
-        {
-            "vertexCollections": {
-                "account": {"Balance", "account_type", "customer_id", "rank"},
-                "bank": {"Country", "Id", "bank_id", "bank_name"},
-                "customer": {"Name", "Sex", "Ssn", "rank"},
-            },
-            "edgeCollections": {
-                "accountHolder": {},
-                "transaction": {
-                    "transaction_amt", "receiver_bank_id", "sender_bank_id"
-                },
-            },
-        }
         """
         logger.debug(f"Starting arangodb_to_cugraph({name}, ...):")
         self.__validate_attributes("graph", set(metagraph), self.METAGRAPH_ATRIBS)
@@ -107,18 +93,18 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         cug_edges: List[Tuple[CUGId, CUGId]] = []
 
         adb_v: Json
-        for col, atribs in metagraph["vertexCollections"].items():
+        for col, _ in metagraph["vertexCollections"].items():
             logger.debug(f"Preparing '{col}' vertices")
-            for adb_v in self.__fetch_adb_docs(col, atribs, query_options):
+            for adb_v in self.__fetch_adb_docs(col, query_options):
                 adb_id: str = adb_v["_id"]
                 self.__cntrl._prepare_arangodb_vertex(adb_v, col)
                 cug_id: str = adb_v["_id"]
                 adb_map[adb_id] = {"cug_id": cug_id, "collection": col}
 
         adb_e: Json
-        for col, atribs in metagraph["edgeCollections"].items():
+        for col, _ in metagraph["edgeCollections"].items():
             logger.debug(f"Preparing '{col}' edges")
-            for adb_e in self.__fetch_adb_docs(col, atribs, query_options):
+            for adb_e in self.__fetch_adb_docs(col, query_options):
                 from_node_id: CUGId = adb_map[adb_e["_from"]]["cug_id"]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]["cug_id"]
                 cug_edges.append((from_node_id, to_node_id, adb_e.get("weight", 0)))
