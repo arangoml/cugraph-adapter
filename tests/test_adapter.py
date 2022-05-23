@@ -80,7 +80,7 @@ def test_adb_to_cug(
     adapter: ADBCUG_Adapter, name: str, metagraph: ADBMetagraph
 ) -> None:
     cug_g = adapter.arangodb_to_cugraph(name, metagraph)
-    assert_cugraph_data(cug_g, metagraph, True)
+    assert_cugraph_data(cug_g, metagraph)
 
 
 @pytest.mark.parametrize(

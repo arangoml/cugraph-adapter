@@ -71,7 +71,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         metagraph: ADBMetagraph,
         **query_options: Any,
     ) -> CUGMultiGraph:
-        """Create a cuGraph graph from an ArangoDB metagraph. 
+        """Create a cuGraph graph from an ArangoDB metagraph.
 
         :param name: The cuGraph graph name.
         :type name: str
@@ -90,7 +90,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         # Maps ArangoDB vertex IDs to cuGraph node IDs
         adb_map: Dict[str, Dict[str, Union[CUGId, str]]] = dict()
-        cug_edges: List[Tuple[CUGId, CUGId]] = []
+        cug_edges: List[Tuple[CUGId, CUGId, Any]] = []
 
         adb_v: Json
         for col, _ in metagraph["vertexCollections"].items():
