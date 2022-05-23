@@ -13,8 +13,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
     Responsible for controlling how nodes & edges are handled when
     transitioning from ArangoDB to cuGraph.
 
-    You can derive your own custom ADBCUG_Controller, but it is not
-    necessary.
+    You can derive your own custom ADBCUG_Controller.
     """
 
     def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> None:

@@ -120,6 +120,7 @@ def get_bipartite_graph() -> CUGGraph:
 
     cug_graph = CUGGraph()
     cug_graph.from_cudf_edgelist(edges, source="src", destination="dst", renumber=False)
+    return cug_graph
 
 
 class Custom_ADBCUG_Controller(ADBCUG_Controller):
