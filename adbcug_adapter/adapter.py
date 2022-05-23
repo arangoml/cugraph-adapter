@@ -163,7 +163,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         """
         graph = self.__db.graph(name)
         v_cols = graph.vertex_collections()
-        e_cols = {col["edge_collection"] for col in graph.edge_definitions()}
+        e_cols = {e_d["edge_collection"] for e_d in graph.edge_definitions()}
 
         return self.arangodb_collections_to_cugraph(
             name, v_cols, e_cols, **query_options
@@ -222,35 +222,18 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 "Edge Definitions", set(e_d), self.EDGE_DEFINITION_ATRIBS
             )
 
-        cug_map = dict()  # Maps cuGraph node IDs to ArangoDB vertex IDs
+        self.__db.delete_graph(name, ignore_missing=True)
+        adb_graph: ADBGraph = self.__db.create_graph(name, edge_definitions)
 
-        adb_v_cols = set()
-        adb_e_cols = set()
-        for e_d in edge_definitions:
-            e_col: str = e_d["edge_collection"]
-            adb_e_cols.add(e_col)
-
-            if self.__db.has_collection(e_col) is False:
-                logger.debug(f"Creating {e_col} edge collection")
-                self.__db.create_collection(e_col, edge=True)
-
-            v_col: str
-            from_collections = set(e_d["from_vertex_collections"])
-            to_collections = set(e_d["to_vertex_collections"])
-            for v_col in from_collections | to_collections:
-                adb_v_cols.add(v_col)
-
-                if self.__db.has_collection(v_col) is False:
-                    logger.debug(f"Creating {v_col} vertex collection")
-                    self.__db.create_collection(v_col)
+        adb_v_cols = set(adb_graph.vertex_collections())
+        adb_e_cols = {e_d["edge_collection"] for e_d in edge_definitions}
 
         is_homogeneous = len(adb_v_cols | adb_e_cols) == 2
         homogenous_v_col = adb_v_cols.pop() if is_homogeneous else None
         homogenous_e_col = adb_e_cols.pop() if is_homogeneous else None
         logger.debug(f"Is graph '{name}' homogenous? {is_homogeneous}")
 
-        self.__db.delete_graph(name, ignore_missing=True)
-        adb_graph: ADBGraph = self.__db.create_graph(name, edge_definitions)
+        cug_map = dict()  # Maps cuGraph node IDs to ArangoDB vertex IDs
         adb_documents: DefaultDict[str, List[Json]] = defaultdict(list)
 
         cug_id: CUGId
@@ -312,8 +295,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             )
 
         for col, doc_list in adb_documents.items():  # insert remaining documents
-            logger.debug(f"Inserting last {len(doc_list)} documents into '{col}'")
-            self.__db.collection(col).import_bulk(doc_list, on_duplicate="replace")
+            if doc_list:
+                logger.debug(f"Inserting last {len(doc_list)} documents into '{col}'")
+                self.__db.collection(col).import_bulk(doc_list, on_duplicate="replace")
 
         logger.info(f"Created ArangoDB '{name}' Graph")
         return adb_graph

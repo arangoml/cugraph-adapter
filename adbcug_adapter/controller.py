@@ -146,14 +146,3 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
                 res += s
 
         return res
-
-    def _tuple_to_arangodb_key_helper(self, tup: Tuple[Any, ...]) -> str:
-        """Given a tuple, derive a valid ArangoDB _key string.
-
-        :param tup: A tuple with non-None values.
-        :type tup: Tuple[Any, ...]
-        :return: A valid ArangoDB _key value.
-        :rtype: str
-        """
-        string: str = "".join(map(str, tup))
-        return self._string_to_arangodb_key_helper(string)
