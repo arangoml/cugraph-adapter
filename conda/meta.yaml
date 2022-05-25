@@ -33,4 +33,4 @@ about:
   description: |
     The official cuGraph adapter for ArangoDB. Convert ArangoDB graphs into 
     RAPIDS cuGraph graphs, a library of collective GPU-accelerated graph algorithms 
-    that process data found in GPU DataFrames.
+    that process data found in GPU DataFrames, and vice-versa.
