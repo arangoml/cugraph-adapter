@@ -1,6 +1,12 @@
-## (unreleased)
+## 1.0.0 (2022-05-25)
 
 ### New
+
+* Cugraph-adapter notebook (#13) [Anthony Mahanna]
+
+  * #6: initial commit
+
+  * minor cleanup
 
 * Cugraph to arangodb (#11) [Anthony Mahanna]
 
@@ -125,6 +131,10 @@
 * Pytest parameterization. [aMahanna]
 
 ### Other
+
+* Changelog: release 0.0.2.dev (#12) [github-actions[bot]]
+
+  !gitchangelog
 
 * Cleanup. [aMahanna]
 
