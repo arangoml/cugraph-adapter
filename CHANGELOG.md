@@ -1,6 +1,74 @@
-## 0.0.1.dev (2022-05-17)
+## (unreleased)
 
 ### New
+
+* Cugraph to arangodb (#11) [Anthony Mahanna]
+
+  * minor houeskeeping before notebook
+
+  * fix: docstring
+
+  * new: notebook draft
+
+  * Update README.md
+
+  * Update meta.yaml
+
+  * cleanup: notebook
+
+  * Update README.md
+
+  * replace: underscore with hyphen
+
+  * Update ArangoDB_cuGraph_Adapter.ipynb
+
+  * remove: %%capture
+
+  * revert: notebook
+
+  hijacking branch to further introduce adapter features & housekeeping (notebook will come at a later time)
+
+  * #3: initial commit
+
+  * cleanup
+
+  * Update adapter.py
+
+  * fix: black & mypy
+
+  * fix: typo
+
+  * fix: str instead of int
+
+  * fix: debug statements
+
+  * enable full test run
+
+  * bump coverage
+
+  * fix: flake8
+
+  * pragma no cover
+
+  * cleanup, black
+
+  * fix: mypy
+
+  * fix: address comment
+
+  * new: test case & cleanup
+
+  * fix: typo
+
+  * fix: illegal col name
+
+  * fix: docstring and return value
+
+  * update: build & analyze triggers
+
+  * Update README.md
+
+  * update: start enumerate() at 1
 
 * Import shortcut. [aMahanna]
 
@@ -50,11 +118,27 @@
 
 ### Fix
 
+* Changelog release title. [aMahanna]
+
 * Run coveralls within conda. [aMahanna]
 
 * Pytest parameterization. [aMahanna]
 
 ### Other
+
+* Cleanup. [aMahanna]
+
+* Update release.yml. [aMahanna]
+
+* Update README.md. [aMahanna]
+
+* Update release.yml. [aMahanna]
+
+* Update meta.yaml. [aMahanna]
+
+* Update release.yml. [aMahanna]
+
+* Temp: disable build phase in release.yml. [aMahanna]
 
 * Prep for 0.0.1.dev release. [aMahanna]
 
