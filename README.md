@@ -27,7 +27,6 @@ While offering a similar API and set of graph algorithms to NetworkX, RAPIDS cuG
 
 #### Latest Release
 ```
-conda config --add channels arangodb
 conda install -c arangodb adbcug-adapter
 ```
 

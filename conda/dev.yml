@@ -7,5 +7,6 @@ channels:
 dependencies:
 - cudatoolkit>=11.2
 - cugraph>=21.12
-- python-arango>=7.3.3
 - python>=3.7,<3.10
+- pip:
+  - python-arango>=7.3.3

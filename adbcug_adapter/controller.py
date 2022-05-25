@@ -29,8 +29,6 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :type adb_vertex: adbcug_adapter.typings.Json
         :param col: The ArangoDB collection the vertex belongs to.
         :type col: str
-        :return: The ArangoDB _id attribute of the vertex.
-        :rtype: str
         """
         return
 
