@@ -7,7 +7,7 @@ setup(
     name="adbcug_adapter",
     author="Anthony Mahanna",
     author_email="anthony.mahanna@arangodb.com",
-    description="Convert ArangoDB graphs to cuGraph",
+    description="Convert ArangoDB graphs to cuGraph & vice-versa.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/arangoml/cugraph-adapter",

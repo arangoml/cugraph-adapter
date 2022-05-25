@@ -15,7 +15,7 @@
 <a href="https://www.arangodb.com/" rel="arangodb.com">![](./examples/assets/logos/ArangoDB_logo.png)</a>
 <a href="https://github.com/rapidsai/cugraph" rel="github.com/rapidsai/cugraph"><img src="./examples/assets/logos/rapids_logo.png" width=30% height=30%></a>
 
-The ArangoDB-cuGraph Adapter exports Graphs from ArangoDB, a multi-model Graph Database, into RAPIDS cuGraph, a library of collective GPU-accelerated graph algorithms.
+The ArangoDB-cuGraph Adapter exports Graphs from ArangoDB, a multi-model Graph Database, into RAPIDS cuGraph, a library of collective GPU-accelerated graph algorithms, and vice-versa.
 
 ## About RAPIDS cuGraph
 
