@@ -6,9 +6,6 @@ channels:
 - conda-forge
 dependencies:
 - cudatoolkit>=11.2
-- cugraph>=21.12.00
+- cugraph>=21.12
+- python-arango>=7.3.3
 - python>=3.7,<3.10
-- python-arango>=7.3.4
-- pip
-- pytest>=6.0.0
-- setuptools>=42
