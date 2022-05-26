@@ -32,7 +32,7 @@ conda install -c arangodb adbcug-adapter
 
 #### Current State
 ```
-conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph cudatoolkit
+conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph>=21.12 cudatoolkit>=11.2
 pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```
 
@@ -108,7 +108,7 @@ Prerequisite: `arangorestore`, `CUDA-capable GPU`
 1. `git clone https://github.com/arangoml/cugraph-adapter.git`
 2. `cd cugraph-adapter`
 3. (create virtual environment of choice)
-4. `conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph cudatoolkit`
+4. `conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph>=21.12 cudatoolkit>=11.2`
 5. `conda run pip install -e .[dev]`
 6. (create an ArangoDB instance with method of choice)
 7. `pytest --url <> --dbName <> --username <> --password <>`
