@@ -191,6 +191,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         batch_size: int = 1000,
         keyify_nodes: bool = False,
         keyify_edges: bool = False,
+        edge_attr: str = "weight",
     ) -> ADBGraph:
         """Create an ArangoDB graph from a cuGraph graph, and a set of edge
         definitions.
@@ -216,6 +217,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             Otherwise, ArangoDB _key values for edges will range from 1 to E,
             where E is the number of cugraph edges.
         :type keyify_edges: bool
+        :param edge_attr: If your cuGraph graph is weighted, you can specify
+            the edge attribute name used to represent your cuGraph edge weight values
+            once transferred into ArangoDB. Defaults to 'weight'.
+        :type edge_attr: str
         :return: The ArangoDB Graph API wrapper.
         :rtype: arango.graph.Graph
 
@@ -302,7 +307,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             }
 
             if cug_graph.is_weighted():
-                adb_edge["weight"] = weight[0]
+                adb_edge[edge_attr] = weight[0]
 
             self.__insert_adb_docs(
                 col,
