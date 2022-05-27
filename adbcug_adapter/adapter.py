@@ -69,15 +69,20 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         self,
         name: str,
         metagraph: ADBMetagraph,
+        edge_attr: str = "weight",
         **query_options: Any,
     ) -> CUGMultiGraph:
         """Create a cuGraph graph from an ArangoDB metagraph.
 
         :param name: The cuGraph graph name.
         :type name: str
-        :param metagraph: An object defining vertex & edge collections to import to
-            cuGraph.
+        :param metagraph: An object defining vertex & edge
+            collections to import to cuGraph.
         :type metagraph: adbcug_adapter.typings.ADBMetagraph
+        :param edge_attr: The weight attribute name of your ArangoDB edges.
+            Defaults to 'weight'. If no weight attribute is present,
+            will set the edge weight value to 0.
+        :type edge_attr: str
         :param query_options: Keyword arguments to specify AQL query options when
             fetching documents from the ArangoDB instance.
         :type query_options: Any
@@ -107,7 +112,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             for adb_e in self.__fetch_adb_docs(col, query_options):
                 from_node_id: CUGId = adb_map[adb_e["_from"]]["cug_id"]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]["cug_id"]
-                cug_edges.append((from_node_id, to_node_id, adb_e.get("weight", 0)))
+                cug_edges.append((from_node_id, to_node_id, adb_e.get(edge_attr, 0)))
 
         logger.debug(f"Inserting {len(cug_edges)} edges")
         cug_graph = CUGMultiGraph(directed=True)
@@ -127,6 +132,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         name: str,
         v_cols: Set[str],
         e_cols: Set[str],
+        edge_attr: str = "weight",
         **query_options: Any,
     ) -> CUGMultiGraph:
         """Create a cuGraph graph from ArangoDB collections.
@@ -136,6 +142,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :type v_cols: Set[str]
         :param e_cols: A set of edge collections to import to cuGraph.
         :type e_cols: Set[str]
+        :param edge_attr: The weight attribute name of your ArangoDB edges.
+            Defaults to 'weight'. If no weight attribute is present,
+            will set the edge weight value to 0.
+        :type edge_attr: str
         :param query_options: Keyword arguments to specify AQL query options when
             fetching documents from the ArangoDB instance.
         :type query_options: Any
@@ -147,14 +157,18 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             "edgeCollections": {col: set() for col in e_cols},
         }
 
-        return self.arangodb_to_cugraph(name, metagraph, **query_options)
+        return self.arangodb_to_cugraph(name, metagraph, edge_attr, **query_options)
 
     def arangodb_graph_to_cugraph(
-        self, name: str, **query_options: Any
+        self, name: str, edge_attr: str = "weight", **query_options: Any
     ) -> CUGMultiGraph:
         """Create a cuGraph graph from an ArangoDB graph.
         :param name: The ArangoDB graph name.
         :type name: str
+        :param edge_attr: The weight attribute name of your ArangoDB edges.
+            Defaults to 'weight'. If no weight attribute is present,
+            will set the edge weight value to 0.
+        :type edge_attr: str
         :param query_options: Keyword arguments to specify AQL query options when
             fetching documents from the ArangoDB instance.
         :type query_options: Any
@@ -166,7 +180,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         e_cols = {e_d["edge_collection"] for e_d in graph.edge_definitions()}
 
         return self.arangodb_collections_to_cugraph(
-            name, v_cols, e_cols, **query_options
+            name, v_cols, e_cols, edge_attr, **query_options
         )
 
     def cugraph_to_arangodb(
