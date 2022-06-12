@@ -99,12 +99,12 @@ def get_divisibility_graph() -> CUGGraph:
             for j in range(1, 101)
             if j % i == 0
         ],
-        columns=["src", "dst", "weight"],
+        columns=["src", "dst", "quotient"],
     )
 
     cug_graph = CUGMultiGraph(directed=True)
     cug_graph.from_cudf_edgelist(
-        edges, source="src", destination="dst", edge_attr="weight", renumber=False
+        edges, source="src", destination="dst", edge_attr="quotient", renumber=False
     )
 
     return cug_graph

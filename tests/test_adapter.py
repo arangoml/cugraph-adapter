@@ -144,7 +144,8 @@ def test_adb_graph_to_cug(
 
 
 @pytest.mark.parametrize(
-    "adapter, name, cug_g, edge_definitions, batch_size, keyify_nodes",
+    "adapter, name, nx_g, edge_definitions, \
+        batch_size, keyify_nodes, keyify_edges, edge_attr, overwrite",
     [
         (
             adbcug_adapter,
@@ -158,6 +159,20 @@ def test_adb_graph_to_cug(
                 }
             ],
             100,
+            True,
+            False,
+            "quotient",
+            False,
+        ),
+        (
+            adbcug_adapter,
+            "DivisibilityGraph",
+            get_divisibility_graph(),
+            None,
+            100,
+            False,
+            False,
+            "quotient",
             True,
         ),
         (
@@ -173,6 +188,9 @@ def test_adb_graph_to_cug(
             ],
             1,
             True,
+            False,
+            "",
+            False,
         ),
     ],
 )
@@ -183,9 +201,19 @@ def test_cug_to_adb(
     edge_definitions: List[Json],
     batch_size: int,
     keyify_nodes: bool,
+    keyify_edges: bool,
+    edge_attr: str,
+    overwrite: bool,
 ) -> None:
     adb_g = adapter.cugraph_to_arangodb(
-        name, cug_g, edge_definitions, batch_size, keyify_nodes
+        name,
+        cug_g,
+        edge_definitions,
+        batch_size,
+        keyify_nodes,
+        keyify_edges,
+        edge_attr,
+        overwrite,
     )
     assert_arangodb_data(adapter, cug_g, adb_g, keyify_nodes)
 
