@@ -190,7 +190,7 @@ def test_adb_graph_to_cug(
             True,
             False,
             "",
-            False,
+            True,
         ),
     ],
 )
