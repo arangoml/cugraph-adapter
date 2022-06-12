@@ -169,11 +169,11 @@ def test_adb_graph_to_cug(
             "DivisibilityGraph",
             get_divisibility_graph(),
             None,
-            100,
+            1000,
             False,
             False,
             "quotient",
-            True,
+            False,
         ),
         (
             custom_adbcug_adapter,
