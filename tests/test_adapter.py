@@ -144,7 +144,7 @@ def test_adb_graph_to_cug(
 
 
 @pytest.mark.parametrize(
-    "adapter, name, nx_g, edge_definitions, \
+    "adapter, name, cug_g, edge_definitions, \
         batch_size, keyify_nodes, keyify_edges, edge_attr, overwrite",
     [
         (
