@@ -52,9 +52,7 @@ from adbcug_adapter import ADBCUG_Adapter
 
 # Instantiate driver client based on user preference
 # Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint for example purposes
-db = ArangoClient(hosts="http://localhost:8529").db(
-    "_system", username="root", password="openSesame"
-)
+db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="")
 
 # Instantiate your ADBCUG Adapter with driver client
 adbcug_adapter = ADBCUG_Adapter(db)
