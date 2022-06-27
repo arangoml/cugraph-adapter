@@ -199,12 +199,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         name: str,
         cug_graph: CUGGraph,
         edge_definitions: Optional[List[Json]] = None,
-        batch_size: int = 1000,
         keyify_nodes: bool = False,
         keyify_edges: bool = False,
+        overwrite_graph: bool = False,
         edge_attr: str = "weight",
-        overwrite: bool = False,
-        **graph_options: Any,
+        **import_options: Dict[str, Any],
     ) -> ADBGraph:
         """Create an ArangoDB graph from a cuGraph graph, and a set of edge
         definitions.
@@ -213,14 +212,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :type name: str
         :param cug_graph: The existing cuGraph graph.
         :type cug_graph: cugraph.classes.graph.Graph
-        :param edge_definitions: List of edge definitions, where each edge definition
-            entry is a dictionary with fields "edge_collection",
-            "from_vertex_collections" and "to_vertex_collections"
-            (see below for example). If unspecified, assumes that
-            graph **name** already exists
-        :type edge_definitions: List[adbcug_adapter.typings.Json]
-        :param batch_size: The maximum number of documents to insert at once
-        :type batch_size: int
+        :param edge_definitions: List of edge definitions, where each edge
+            definition entry is a dictionary with fields "edge_collection",
+            "from_vertex_collections" and "to_vertex_collections" (see below
+            for example). Can be omitted if the graph already exists.
+        :type edge_definitions: List[adbnx_adapter.typings.Json]
         :param keyify_nodes: If set to True, will create custom node keys based on the
             behavior of ADBCUG_Controller._keyify_cugraph_node().
             Otherwise, ArangoDB _key values for vertices will range from 1 to N,
@@ -235,14 +231,13 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             the edge attribute name used to represent your cuGraph edge weight values
             once transferred into ArangoDB. Defaults to 'weight'.
         :type edge_attr: str
-        :param overwrite: If set to True, will first delete the existing
-            graph, and drop its collections.
-        :param overwrite: bool
-        :param graph_options: Keyword arguments to specify additional
-            parameters for creating the ArangoDB graph via the
-            python-arango create_graph() function
-            (e.g smart graph, orphan collections, sharding, ...)
-        :type graph_options: Any
+        :param overwrite_graph: Overwrites the graph if it already exists.
+            Does not drop associated collections.
+        :type overwrite_graph: bool
+        :param import_options: Keyword arguments to specify additional
+            parameters for ArangoDB document insertion. See
+            arango.collection.Collection.import_bulk for all options.
+        :type import_options: Any
         :return: The ArangoDB Graph API wrapper.
         :rtype: arango.graph.Graph
 
@@ -259,19 +254,14 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         """
         logger.debug(f"Starting cugraph_to_arangodb('{name}', ...):")
 
-        if edge_definitions is None:
-            logger.debug(f"Assuming {name} already exists. Grabbing edge_definitions.")
-            edge_definitions = self.__db.graph(name).edge_definitions()
+        if overwrite_graph:
+            logger.debug("Overwrite graph flag is True. Deleting old graph.")
+            self.__db.delete_graph(name, ignore_missing=True)
 
-        if overwrite:
-            logger.debug("Overwrite is True. Deleting existing graph & collections.")
-            self.__db.delete_graph(name, drop_collections=True, ignore_missing=True)
-
-        adb_graph = (
-            self.__db.graph(name)
-            if self.__db.has_graph(name)
-            else self.__db.create_graph(name, edge_definitions, **graph_options)
-        )
+        if self.__db.has_graph(name):
+            adb_graph = self.__db.graph(name)
+        else:
+            adb_graph = self.__db.create_graph(name, edge_definitions)
 
         adb_v_cols = adb_graph.vertex_collections()
         adb_e_cols = [e_d["edge_collection"] for e_d in edge_definitions]
@@ -306,8 +296,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 "adb_key": key,
             }
 
-            adb_vertex = {"_id": adb_v_id}
-            self.__insert_adb_docs(col, adb_documents[col], adb_vertex, batch_size)
+            adb_documents[col].append({"_id": adb_v_id})
 
         from_node_id: CUGId
         to_node_id: CUGId
@@ -338,17 +327,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             if cug_graph.is_weighted():
                 adb_edge[edge_attr] = weight[0]
 
-            self.__insert_adb_docs(
-                col,
-                adb_documents[col],
-                adb_edge,
-                batch_size,
-            )
+            adb_documents[col].append(adb_edge)
 
-        for col, doc_list in adb_documents.items():  # insert remaining documents
-            if doc_list:
-                logger.debug(f"Inserting last {len(doc_list)} documents into '{col}'")
-                self.__db.collection(col).import_bulk(doc_list, on_duplicate="replace")
+        for col, doc_list in adb_documents.items():  # import documents into ArangoDB
+            logger.debug(f"Inserting {len(doc_list)} documents into '{col}'")
+            result = self.__db.collection(col).import_bulk(doc_list, **import_options)
+            logger.debug(result)
 
         logger.info(f"Created ArangoDB '{name}' Graph")
         return adb_graph
@@ -370,29 +354,3 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         """
 
         return self.__db.aql.execute(aql, **query_options)
-
-    def __insert_adb_docs(
-        self,
-        col: str,
-        col_docs: List[Json],
-        doc: Json,
-        batch_size: int,
-    ) -> None:
-        """Insert an ArangoDB document into a list. If the list exceeds
-        batch_size documents, insert into the ArangoDB collection.
-
-        :param col: The collection name
-        :type col: str
-        :param col_docs: The existing documents data belonging to the collection.
-        :type col_docs: List[adbnx_adapter.typings.Json]
-        :param doc: The current document to insert.
-        :type doc: adbnx_adapter.typings.Json
-        :param batch_size: The maximum number of documents to insert at once
-        :type batch_size: int
-        """
-        col_docs.append(doc)
-
-        if len(col_docs) >= batch_size:
-            logger.debug(f"Inserting next {batch_size} batch documents into '{col}'")
-            self.__db.collection(col).import_bulk(col_docs, on_duplicate="replace")
-            col_docs.clear()
