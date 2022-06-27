@@ -180,7 +180,6 @@ def test_adb_graph_to_cug(
                     "to_vertex_collections": ["col_b"],
                 }
             ],
-            1,
             True,
             False,
             True,
