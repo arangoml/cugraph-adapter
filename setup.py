@@ -17,7 +17,7 @@ setup(
     python_requires=">=3.7",
     license="Apache Software License",
     install_requires=[
-        "python-arango>=7.4.0",
+        "python-arango>=7.4.1",
         "setuptools>=42",
     ],
     extras_require={
