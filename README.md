@@ -43,31 +43,26 @@ pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```py
 import cudf
 import cugraph
+from arango import ArangoClient # Python-Arango driver
 
-# Import the Python-Arango driver
-from arango import ArangoClient
-
-# Import the ArangoDB-cuGraph Adapter
 from adbcug_adapter import ADBCUG_Adapter
 
-# Instantiate driver client based on user preference
-# Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint for example purposes
+# Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint
 db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="")
 
-# Instantiate your ADBCUG Adapter with driver client
 adbcug_adapter = ADBCUG_Adapter(db)
 
-# Convert ArangoDB to cuGraph via Graph Name
+# Use Case 1.1: ArangoDB to cuGraph via Graph name
 cug_fraud_graph = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
 
-# Convert ArangoDB to cuGraph via Collection Names
+# Use Case 1.2: ArangoDB to cuGraph via Collection names
 cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
     "fraud-detection",
-    {"account", "bank", "branch", "Class", "customer"},  # Specify vertex collections
-    {"accountHolder", "Relationship", "transaction"},  # Specify edge collections
+    {"account", "bank", "branch", "Class", "customer"},  #  Vertex collections
+    {"accountHolder", "Relationship", "transaction"},  # Edge collections
 )
 
-# Convert cuGraph to ArangoDB:
+# Use Case 2: cuGraph to ArangoDB:
 ## 1) Create a sample cuGraph
 cug_divisibility_graph = cugraph.MultiGraph(directed=True)
 cug_divisibility_graph.from_cudf_edgelist(

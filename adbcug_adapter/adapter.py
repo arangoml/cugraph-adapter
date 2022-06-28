@@ -84,7 +84,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             will set the edge weight value to 0.
         :type edge_attr: str
         :param query_options: Keyword arguments to specify AQL query options when
-            fetching documents from the ArangoDB instance.
+            fetching documents from the ArangoDB instance. Full parameter list:
+            https://docs.python-arango.com/en/main/specs.html#arango.aql.AQL.execute
         :type query_options: Any
         :return: A Multi-Directed cuGraph Graph.
         :rtype: cugraph.structure.graph_classes.MultiDiGraph
@@ -158,7 +159,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             will set the edge weight value to 0.
         :type edge_attr: str
         :param query_options: Keyword arguments to specify AQL query options when
-            fetching documents from the ArangoDB instance.
+            fetching documents from the ArangoDB instance. Full parameter list:
+            https://docs.python-arango.com/en/main/specs.html#arango.aql.AQL.execute
         :type query_options: Any
         :return: A Multi-Directed cuGraph Graph.
         :rtype: cugraph.structure.graph_classes.MultiDiGraph
@@ -181,7 +183,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             will set the edge weight value to 0.
         :type edge_attr: str
         :param query_options: Keyword arguments to specify AQL query options when
-            fetching documents from the ArangoDB instance.
+            fetching documents from the ArangoDB instance. Full parameter list:
+            https://docs.python-arango.com/en/main/specs.html#arango.aql.AQL.execute
         :type query_options: Any
         :return: A Multi-Directed cuGraph Graph.
         :rtype: cugraph.structure.graph_classes.MultiDiGraph
@@ -235,8 +238,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             Does not drop associated collections.
         :type overwrite_graph: bool
         :param import_options: Keyword arguments to specify additional
-            parameters for ArangoDB document insertion. See
-            arango.collection.Collection.import_bulk for all options.
+            parameters for ArangoDB document insertion. Full parameter list:
+            https://docs.python-arango.com/en/main/specs.html#arango.collection.Collection.import_bulk
         :type import_options: Any
         :return: The ArangoDB Graph API wrapper.
         :rtype: arango.graph.Graph
