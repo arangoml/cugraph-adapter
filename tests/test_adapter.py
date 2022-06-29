@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 
 import pytest
 from arango.graph import Graph as ADBGraph
@@ -15,12 +15,6 @@ from .conftest import (
     get_bipartite_graph,
     get_divisibility_graph,
 )
-
-
-def test_validate_attributes() -> None:
-    with pytest.raises(ValueError):
-        bad_metagraph: Dict[str, Any] = dict()
-        adbcug_adapter.arangodb_to_cugraph("graph_name", bad_metagraph)
 
 
 def test_validate_constructor() -> None:
@@ -144,7 +138,8 @@ def test_adb_graph_to_cug(
 
 
 @pytest.mark.parametrize(
-    "adapter, name, cug_g, edge_definitions, batch_size, keyify_nodes",
+    "adapter, name, cug_g, edge_definitions, \
+        keyify_nodes, keyify_edges, overwrite_graph, edge_attr, import_options",
     [
         (
             adbcug_adapter,
@@ -157,8 +152,22 @@ def test_adb_graph_to_cug(
                     "to_vertex_collections": ["numbers"],
                 }
             ],
-            100,
             True,
+            False,
+            False,
+            "quotient",
+            {"batch_size": 100, "on_duplicate": "replace"},
+        ),
+        (
+            adbcug_adapter,
+            "DivisibilityGraph",
+            get_divisibility_graph(),
+            None,
+            False,
+            False,
+            False,
+            "quotient",
+            {"overwrite": True},
         ),
         (
             custom_adbcug_adapter,
@@ -171,8 +180,11 @@ def test_adb_graph_to_cug(
                     "to_vertex_collections": ["col_b"],
                 }
             ],
-            1,
             True,
+            False,
+            True,
+            "",
+            {"overwrite": True},
         ),
     ],
 )
@@ -180,14 +192,31 @@ def test_cug_to_adb(
     adapter: ADBCUG_Adapter,
     name: str,
     cug_g: CUGGraph,
-    edge_definitions: List[Json],
-    batch_size: int,
+    edge_definitions: Optional[List[Json]],
     keyify_nodes: bool,
+    keyify_edges: bool,
+    overwrite_graph: bool,
+    edge_attr: str,
+    import_options: Dict[str, Any],
 ) -> None:
     adb_g = adapter.cugraph_to_arangodb(
-        name, cug_g, edge_definitions, batch_size, keyify_nodes
+        name,
+        cug_g,
+        edge_definitions,
+        keyify_nodes,
+        keyify_edges,
+        overwrite_graph,
+        edge_attr,
+        **import_options,
     )
-    assert_arangodb_data(adapter, cug_g, adb_g, keyify_nodes)
+    assert_arangodb_data(
+        adapter,
+        cug_g,
+        adb_g,
+        keyify_nodes,
+        keyify_edges,
+        edge_attr,
+    )
 
 
 def assert_arangodb_data(
@@ -195,12 +224,13 @@ def assert_arangodb_data(
     cug_g: CUGGraph,
     adb_g: ADBGraph,
     keyify_nodes: bool,
+    keyify_edges: bool,
+    edge_attr: str,
 ) -> None:
     cug_map = dict()
 
-    edge_definitions = adb_g.edge_definitions()
     adb_v_cols = adb_g.vertex_collections()
-    adb_e_cols = [e_d["edge_collection"] for e_d in edge_definitions]
+    adb_e_cols = [e_d["edge_collection"] for e_d in adb_g.edge_definitions()]
 
     has_one_vcol = len(adb_v_cols) == 1
     has_one_ecol = len(adb_e_cols) == 1

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABC
-from typing import Any, List, Set
+from typing import Any, List, Optional, Set
 
 from arango.graph import Graph as ADBGraph
 from cugraph import Graph as CUGGraph
@@ -41,29 +41,16 @@ class Abstract_ADBCUG_Adapter(ABC):
         self,
         name: str,
         cug_graph: CUGGraph,
-        edge_definitions: List[Json],
-        batch_size: int = 1000,
+        edge_definitions: Optional[List[Json]] = None,
         keyify_nodes: bool = False,
         keyify_edges: bool = False,
+        overwrite_graph: bool = False,
+        **import_options: Any,
     ) -> ADBGraph:
-        raise NotImplementedError  # pragma: no cover
-
-    def __validate_attributes(self) -> None:
         raise NotImplementedError  # pragma: no cover
 
     def __fetch_adb_docs(self) -> None:
         raise NotImplementedError  # pragma: no cover
-
-    def __insert_adb_docs(self) -> None:
-        raise NotImplementedError  # pragma: no cover
-
-    @property
-    def METAGRAPH_ATRIBS(self) -> Set[str]:
-        return {"vertexCollections", "edgeCollections"}
-
-    @property
-    def EDGE_DEFINITION_ATRIBS(self) -> Set[str]:
-        return {"edge_collection", "from_vertex_collections", "to_vertex_collections"}
 
 
 class Abstract_ADBCUG_Controller(ABC):
