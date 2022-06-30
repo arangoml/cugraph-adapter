@@ -266,8 +266,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         else:
             adb_graph = self.__db.create_graph(name, edge_definitions)
 
-        adb_v_cols = adb_graph.vertex_collections()
-        adb_e_cols = [e_d["edge_collection"] for e_d in adb_graph.edge_definitions()]
+        adb_v_cols: List[str] = adb_graph.vertex_collections()
+        adb_e_cols: List[str] = [
+            e_d["edge_collection"] for e_d in adb_graph.edge_definitions()
+        ]
 
         has_one_vcol = len(adb_v_cols) == 1
         has_one_ecol = len(adb_e_cols) == 1
@@ -285,6 +287,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 if has_one_vcol
                 else self.__cntrl._identify_cugraph_node(cug_id, adb_v_cols)
             )
+
+            if col not in adb_v_cols:
+                msg = f"'{cug_id}' identified as '{col}', which is not in {adb_v_cols}"
+                raise ValueError(msg)
+
             key = (
                 self.__cntrl._keyify_cugraph_node(cug_id, col)
                 if keyify_nodes
@@ -315,6 +322,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 if has_one_ecol
                 else self.__cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
             )
+
+            if col not in adb_e_cols:
+                cug_edge = f"'({from_node_id}, {to_node_id})'"
+                msg = f"{cug_edge} identified as '{col}', which is not in {adb_e_cols}"
+                raise ValueError(msg)
+
             key = (
                 self.__cntrl._keyify_cugraph_edge(from_n, to_n, col)
                 if keyify_edges
