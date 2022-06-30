@@ -114,9 +114,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         for col, _ in metagraph["vertexCollections"].items():
             logger.debug(f"Preparing '{col}' vertices")
             for i, adb_v in enumerate(self.__fetch_adb_docs(col, query_options), 1):
-                logger.debug(f'V{i}: {adb_v["_id"]}')
-
                 adb_id: str = adb_v["_id"]
+                logger.debug(f"V{i}: {adb_id}")
+
                 self.__cntrl._prepare_arangodb_vertex(adb_v, col)
                 cug_id: str = adb_v["_id"]
 
