@@ -330,7 +330,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             col = (
                 adb_e_cols[0]
                 if has_one_ecol
-                else self.__cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
+                else self.__cntrl._identify_cugraph_edge(
+                    from_n, to_n, adb_e_cols, weight[0] if weight else None
+                )
             )
 
             if col not in adb_e_cols:

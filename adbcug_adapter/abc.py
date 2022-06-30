@@ -65,6 +65,7 @@ class Abstract_ADBCUG_Controller(ABC):
         from_cug_node: Json,
         to_cug_node: Json,
         adb_e_cols: List[str],
+        weight: Optional[Any] = None,
     ) -> str:
         raise NotImplementedError  # pragma: no cover
 
