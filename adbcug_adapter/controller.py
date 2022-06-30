@@ -30,7 +30,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :param col: The ArangoDB collection the vertex belongs to.
         :type col: str
         """
-        return
+        pass
 
     def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
         """Given a cuGraph node, and a list of ArangoDB vertex collections defined,

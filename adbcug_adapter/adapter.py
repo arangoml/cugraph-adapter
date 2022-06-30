@@ -103,10 +103,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             },
         }
         """
-        logger.debug(f"Starting arangodb_to_cugraph({name}, ...):")
+        logger.debug(f"--arangodb_to_cugraph('{name}')--")
 
         # Maps ArangoDB vertex IDs to cuGraph node IDs
-        adb_map: Dict[str, Dict[str, Union[CUGId, str]]] = dict()
+        adb_map: Dict[str, CUGId] = dict()
+
         cug_edges: List[Tuple[CUGId, CUGId, Any]] = []
 
         adb_v: Json
@@ -119,7 +120,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 self.__cntrl._prepare_arangodb_vertex(adb_v, col)
                 cug_id: str = adb_v["_id"]
 
-                adb_map[adb_id] = {"cug_id": cug_id, "collection": col}
+                adb_map[adb_id] = cug_id
 
         adb_e: Json
         for col, _ in metagraph["edgeCollections"].items():
@@ -127,8 +128,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             for i, adb_e in enumerate(self.__fetch_adb_docs(col, query_options), 1):
                 logger.debug(f"E{i}: {adb_e['_id']}")
 
-                from_node_id: CUGId = adb_map[adb_e["_from"]]["cug_id"]
-                to_node_id: CUGId = adb_map[adb_e["_to"]]["cug_id"]
+                from_node_id: CUGId = adb_map[adb_e["_from"]]
+                to_node_id: CUGId = adb_map[adb_e["_to"]]
+
                 cug_edges.append((from_node_id, to_node_id, adb_e.get(edge_attr, 0)))
 
         logger.debug(f"Inserting {len(cug_edges)} edges")
@@ -260,7 +262,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             }
         ]
         """
-        logger.debug(f"Starting cugraph_to_arangodb('{name}', ...):")
+        logger.debug(f"--cugraph_to_arangodb('{name}')--")
 
         if overwrite_graph:
             logger.debug("Overwrite graph flag is True. Deleting old graph.")
@@ -280,7 +282,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         has_one_ecol = len(adb_e_cols) == 1
         logger.debug(f"Is graph '{name}' homogeneous? {has_one_vcol and has_one_ecol}")
 
-        cug_map = dict()  # Maps cuGraph node IDs to ArangoDB vertex IDs
+        # Maps cuGraph node IDs to ArangoDB vertex IDs
+        cug_map: Dict[CUGId, Json] = dict()
+
+        # Stores to-be-inserted ArangoDB documents by collection name
         adb_documents: DefaultDict[str, List[Json]] = defaultdict(list)
 
         cug_id: CUGId
