@@ -113,19 +113,19 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         for col, _ in metagraph["vertexCollections"].items():
             logger.debug(f"Preparing '{col}' vertices")
             for i, adb_v in enumerate(self.__fetch_adb_docs(col, query_options), 1):
+                logger.debug(f'V{i}: {adb_v["_id"]}')
+
                 adb_id: str = adb_v["_id"]
-                logger.debug(f"Vertex {i}: {adb_id}")
-
                 self.__cntrl._prepare_arangodb_vertex(adb_v, col)
-
                 cug_id: str = adb_v["_id"]
+
                 adb_map[adb_id] = {"cug_id": cug_id, "collection": col}
 
         adb_e: Json
         for col, _ in metagraph["edgeCollections"].items():
             logger.debug(f"Preparing '{col}' edges")
             for i, adb_e in enumerate(self.__fetch_adb_docs(col, query_options), 1):
-                logger.debug(f"Edge {i}: {adb_e['_id']}")
+                logger.debug(f"E{i}: {adb_e['_id']}")
 
                 from_node_id: CUGId = adb_map[adb_e["_from"]]["cug_id"]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]["cug_id"]
@@ -287,7 +287,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         cug_nodes = cug_graph.nodes().values_host
         logger.debug(f"Preparing {len(cug_nodes)} cugraph nodes")
         for i, cug_id in enumerate(cug_nodes, 1):
-            logger.debug(f"Node {i}: {cug_id}")
+            logger.debug(f"N{i}: {cug_id}")
 
             col = (
                 adb_v_cols[0]
@@ -321,8 +321,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         for i, (from_node_id, to_node_id, *weight) in enumerate(
             cug_graph.view_edge_list().values_host, 1
         ):
-            cug_edge = f"'({from_node_id}, {to_node_id})'"
-            logger.debug(f"Edge {i}: {cug_edge}")
+            edge_str = f"({from_node_id}, {to_node_id})"
+            logger.debug(f"E{i}: {edge_str}")
 
             from_n = cug_map[from_node_id]
             to_n = cug_map[to_node_id]
@@ -334,7 +334,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             )
 
             if col not in adb_e_cols:
-                msg = f"{cug_edge} identified as '{col}', which is not in {adb_e_cols}"
+                msg = f"{edge_str} identified as '{col}', which is not in {adb_e_cols}"
                 raise ValueError(msg)
 
             key = (
