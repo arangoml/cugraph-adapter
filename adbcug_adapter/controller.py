@@ -37,7 +37,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         identify which ArangoDB vertex collection it should belong to.
 
         NOTE: You must override this function if len(**adb_v_cols**) > 1
-        OR **cug_node_id* does NOT comply to ArangoDB standards
+        AND **cug_node_id* does NOT comply to ArangoDB standards
         (i.e "{collection}/{key}").
 
         :param cug_node_id: The cuGraph ID of the vertex.
@@ -100,7 +100,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         # Otherwise, user must override this function if custom ArangoDB _key
         # values are required for nodes
         adb_vertex_id: str = str(cug_node_id)
-        return adb_vertex_id.split("/")[1]
+        return self._string_to_arangodb_key_helper(adb_vertex_id.split("/")[1])
 
     def _keyify_cugraph_edge(
         self,
