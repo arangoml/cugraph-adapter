@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, List, Optional
 
 from arango import ArangoClient
 from arango.database import StandardDatabase
@@ -48,9 +48,10 @@ def pytest_configure(config: Any) -> None:
         con["dbName"], con["username"], con["password"], verify=True
     )
 
-    global adbcug_adapter, custom_adbcug_adapter
+    global adbcug_adapter, bipartite_adbcug_adapter, likes_adbcug_adapter
     adbcug_adapter = ADBCUG_Adapter(db, logging_lvl=logging.DEBUG)
-    custom_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
+    bipartite_adbcug_adapter = ADBCUG_Adapter(db, Bipartite_ADBCUG_Controller())
+    likes_adbcug_adapter = ADBCUG_Adapter(db, Likes_ADBCUG_Controller())
 
     arango_restore(con, "examples/data/fraud_dump")
     arango_restore(con, "examples/data/imdb_dump")
@@ -123,6 +124,46 @@ def get_bipartite_graph() -> CUGGraph:
     return cug_graph
 
 
-class Custom_ADBCUG_Controller(ADBCUG_Controller):
+class Bipartite_ADBCUG_Controller(ADBCUG_Controller):
     def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
         return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
+
+
+def get_drivers_graph() -> CUGraph:
+    edges = DataFrame(
+        [("P-John", "C-BMW"), ("P-Mark", "C-Audi")],
+        columns=["src", "dst"],
+    )
+
+    cug_graph = CUGGraph()
+    cug_graph.from_cudf_edgelist(edges, source="src", destination="dst", renumber=False)
+    return cug_graph
+
+
+def get_likes_graph() -> CUGraph:
+    edges = DataFrame(
+        [("P-John", "P-Emily", True), ("P-Emily", "P-John", False)],
+        columns=["src", "dst", "likes"],
+    )
+
+    cug_graph = CUGGraph()
+    cug_graph.from_cudf_edgelist(
+        edges, source="src", destination="dst", edge_attr="likes", renumber=False
+    )
+    return cug_graph
+
+
+class Likes_ADBCUG_Controller(ADBCUG_Controller):
+    def _identify_cugraph_edge(
+        self,
+        from_cug_node: Json,
+        to_cug_node: Json,
+        adb_e_cols: List[str],
+        weight: Optional[Any] = None,
+    ) -> str:
+        if weight is True:
+            return "likes"
+        elif weight is False:
+            return "dislikes"
+        else:
+            raise ValueError(f"Unrecognized 'weight' value: {weight}")

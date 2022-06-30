@@ -10,10 +10,13 @@ from adbcug_adapter.typings import ADBMetagraph, Json
 
 from .conftest import (
     adbcug_adapter,
-    custom_adbcug_adapter,
+    bipartite_adbcug_adapter,
     db,
     get_bipartite_graph,
     get_divisibility_graph,
+    get_drivers_graph,
+    get_likes_graph,
+    likes_adbcug_adapter,
 )
 
 
@@ -170,7 +173,7 @@ def test_adb_graph_to_cug(
             {"overwrite": True},
         ),
         (
-            custom_adbcug_adapter,
+            bipartite_adbcug_adapter,
             "SampleBipartiteGraph",
             get_bipartite_graph(),
             [
@@ -217,6 +220,37 @@ def test_cug_to_adb(
         keyify_edges,
         edge_attr,
     )
+
+
+def test_cug_to_adb_invalid_collections() -> None:
+    cug_g_1 = get_drivers_graph()
+    e_d_1 = [
+        {
+            "edge_collection": "drives",
+            "from_vertex_collections": ["Person"],
+            "to_vertex_collections": ["Car"],
+        }
+    ]
+    # Raise ValueError on invalid vertex collection identification
+    with pytest.raises(ValueError):
+        adbcug_adapter.cugraph_to_arangodb("Drivers", cug_g_1, e_d_1)
+
+    cug_g_2 = get_likes_graph()
+    e_d_2 = [
+        {
+            "edge_collection": "likes",
+            "from_vertex_collections": ["Person"],
+            "to_vertex_collections": ["Person"],
+        },
+        {
+            "edge_collection": "dislikes",
+            "from_vertex_collections": ["Person"],
+            "to_vertex_collections": ["Person"],
+        },
+    ]
+    # Raise ValueError on invalid edge collection identification
+    with pytest.raises(ValueError):
+        likes_adbcug_adapter.cugraph_to_arangodb("Feelings", cug_g_2, e_d_2)
 
 
 def assert_arangodb_data(
