@@ -48,6 +48,12 @@ def pytest_configure(config: Any) -> None:
         con["dbName"], con["username"], con["password"], verify=True
     )
 
+    db.create_database("py37")
+    db.create_database("py38")
+    db.create_database("py39")
+
+    assert False
+
     global adbcug_adapter, custom_adbcug_adapter
     adbcug_adapter = ADBCUG_Adapter(db, logging_lvl=logging.DEBUG)
     custom_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
