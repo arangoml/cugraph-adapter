@@ -14,7 +14,15 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        python: ["3.7", "3.8", "3.9"]
+        include:
+          - python: "3.7"
+            DB_NAME: "py37"
+
+          - python: "3.8"
+            DB_NAME: "py38"
+
+          - python: "3.9"
+            DB_NAME: "py39"
     name: gpu
     steps:
       - uses: actions/checkout@v2
@@ -48,7 +56,7 @@ jobs:
         run: |
           source ~/anaconda3/etc/profile.d/conda.sh
           conda activate ${{ matrix.python }}
-          conda run -n ${{ matrix.python }} py.test -s --dbName ${{ matrix.python }} --cov=${{env.PACKAGE_DIR}} --cov-report xml --cov-report term-missing -v --color=yes --no-cov-on-fail --code-highlight=yes
+          conda run -n ${{ matrix.python }} py.test -s --dbName ${{ matrix.DB_NAME }} --cov=${{env.PACKAGE_DIR}} --cov-report xml --cov-report term-missing -v --color=yes --no-cov-on-fail --code-highlight=yes
       - name: Publish to coveralls.io
         if: matrix.python == '3.8'
         env:
