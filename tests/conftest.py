@@ -129,7 +129,7 @@ class Bipartite_ADBCUG_Controller(ADBCUG_Controller):
         return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
 
 
-def get_drivers_graph() -> CUGraph:
+def get_drivers_graph() -> CUGGraph:
     edges = DataFrame(
         [("P-John", "C-BMW"), ("P-Mark", "C-Audi")],
         columns=["src", "dst"],
@@ -140,7 +140,7 @@ def get_drivers_graph() -> CUGraph:
     return cug_graph
 
 
-def get_likes_graph() -> CUGraph:
+def get_likes_graph() -> CUGGraph:
     edges = DataFrame(
         [("P-John", "P-Emily", True), ("P-Emily", "P-John", False)],
         columns=["src", "dst", "likes"],
