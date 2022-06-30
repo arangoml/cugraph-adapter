@@ -165,6 +165,6 @@ class Likes_ADBCUG_Controller(ADBCUG_Controller):
         if weight is True:
             return "likes"
         elif weight is False:
-            return "dislikes"
+            return "dislikes_intentional_typo_here"
         else:
             raise ValueError(f"Unrecognized 'weight' value: {weight}")
