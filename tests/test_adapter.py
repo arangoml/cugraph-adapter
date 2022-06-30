@@ -170,7 +170,7 @@ def test_adb_graph_to_cug(
             False,
             False,
             "quotient",
-            {"on_duplicate": "replace"},
+            {"overwrite": True},
         ),
         (
             bipartite_adbcug_adapter,
@@ -187,7 +187,7 @@ def test_adb_graph_to_cug(
             False,
             True,
             "",
-            {"on_duplicate": "replace"},
+            {"overwrite": True},
         ),
     ],
 )
