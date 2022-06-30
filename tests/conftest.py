@@ -18,7 +18,8 @@ PROJECT_DIR = Path(__file__).parent.parent
 
 db: StandardDatabase
 adbcug_adapter: ADBCUG_Adapter
-custom_adbcug_adapter: ADBCUG_Adapter
+bipartite_adbcug_adapter: ADBCUG_Adapter
+likes_adbcug_adapter: ADBCUG_Adapter
 
 
 def pytest_addoption(parser: Any) -> None:
