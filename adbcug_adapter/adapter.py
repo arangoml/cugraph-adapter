@@ -136,10 +136,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         logger.debug(f"Inserting {len(cug_edges)} edges")
         cug_graph = CUGMultiGraph(directed=True)
         cug_graph.from_cudf_edgelist(
-            DataFrame(cug_edges, columns=["src", "dst", "weight"]),
+            DataFrame(cug_edges, columns=["src", "dst", edge_attr]),
             source="src",
             destination="dst",
-            edge_attr="weight",
+            edge_attr=edge_attr,
             renumber=False,
         )
 
@@ -320,6 +320,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
             adb_documents[col].append({"_id": adb_v_id})
 
+        self.__insert_adb_docs(adb_documents, import_options)
+        adb_documents.clear()  # for memory purposes
+
         from_node_id: CUGId
         to_node_id: CUGId
         logger.debug(f"Preparing {cug_graph.number_of_edges()} cugraph edges")
@@ -361,10 +364,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
             adb_documents[col].append(adb_edge)
 
-        for col, doc_list in adb_documents.items():  # import documents into ArangoDB
-            logger.debug(f"Inserting {len(doc_list)} documents into '{col}'")
-            result = self.__db.collection(col).import_bulk(doc_list, **import_options)
-            logger.debug(result)
+        self.__insert_adb_docs(adb_documents, import_options)
 
         logger.info(f"Created ArangoDB '{name}' Graph")
         return adb_graph
@@ -386,3 +386,19 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         """
 
         return self.__db.aql.execute(aql, **query_options)
+
+    def __insert_adb_docs(
+        self, adb_documents: DefaultDict[str, List[Json]], import_options: Any
+    ) -> None:
+        """Insert ArangoDB documents into their ArangoDB collection.
+
+        :param adb_documents: To-be-inserted ArangoDB documents
+        :type adb_documents: DefaultDict[str, List[Json]]
+        :param import_options: Keyword arguments to specify additional
+            parameters for ArangoDB document insertion. Full parameter list:
+            https://docs.python-arango.com/en/main/specs.html#arango.collection.Collection.import_bulk
+        """
+        for col, doc_list in adb_documents.items():
+            logger.debug(f"Inserting {len(doc_list)} documents into '{col}'")
+            result = self.__db.collection(col).import_bulk(doc_list, **import_options)
+            logger.debug(result)
