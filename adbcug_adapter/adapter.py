@@ -11,6 +11,7 @@ from arango.result import Result
 from cudf import DataFrame
 from cugraph import Graph as CUGGraph
 from cugraph import MultiGraph as CUGMultiGraph
+from tqdm import tqdm
 
 from .abc import Abstract_ADBCUG_Adapter
 from .controller import ADBCUG_Controller
@@ -111,23 +112,35 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         cug_edges: List[Tuple[CUGId, CUGId, Any]] = []
 
         adb_v: Json
-        for col, _ in metagraph["vertexCollections"].items():
-            logger.debug(f"Preparing '{col}' vertices")
-            for i, adb_v in enumerate(self.__fetch_adb_docs(col, query_options), 1):
-                adb_id: str = adb_v["_id"]
-                logger.debug(f"V{i}: {adb_id}")
+        for v_col, _ in metagraph["vertexCollections"].items():
+            total = self.__db.collection(v_col).count()
+            logger.debug(f"Preparing {total} '{v_col}' vertices")
 
-                self.__cntrl._prepare_arangodb_vertex(adb_v, col)
+            for adb_v in tqdm(
+                self.__fetch_adb_docs(v_col, query_options),
+                total=total,
+                desc=v_col,
+                colour="CYAN",
+                disable=logger.level > logging.INFO,
+            ):
+                adb_id: str = adb_v["_id"]
+                self.__cntrl._prepare_arangodb_vertex(adb_v, v_col)
                 cug_id: str = adb_v["_id"]
 
                 adb_map[adb_id] = cug_id
 
         adb_e: Json
-        for col, _ in metagraph["edgeCollections"].items():
-            logger.debug(f"Preparing '{col}' edges")
-            for i, adb_e in enumerate(self.__fetch_adb_docs(col, query_options), 1):
-                logger.debug(f"E{i}: {adb_e['_id']}")
+        for e_col, _ in metagraph["edgeCollections"].items():
+            total = self.__db.collection(e_col).count()
+            logger.debug(f"Preparing {total} '{e_col}' edges")
 
+            for adb_e in tqdm(
+                self.__fetch_adb_docs(e_col, query_options),
+                total=total,
+                desc=e_col,
+                colour="GREEN",
+                disable=logger.level > logging.INFO,
+            ):
                 from_node_id: CUGId = adb_map[adb_e["_from"]]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]
 
@@ -213,7 +226,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         keyify_edges: bool = False,
         overwrite_graph: bool = False,
         edge_attr: str = "weight",
-        **import_options: Dict[str, Any],
+        **import_options: Any,
     ) -> ADBGraph:
         """Create an ArangoDB graph from a cuGraph graph, and a set of edge
         definitions.
@@ -290,8 +303,16 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         cug_id: CUGId
         cug_nodes = cug_graph.nodes().values_host
-        logger.debug(f"Preparing {len(cug_nodes)} cugraph nodes")
-        for i, cug_id in enumerate(cug_nodes, 1):
+        logger.debug(f"Preparing {len(cug_nodes)} cuGraph nodes")
+        for i, cug_id in enumerate(
+            tqdm(
+                cug_nodes,
+                desc="Nodes",
+                colour="CYAN",
+                disable=logger.level > logging.INFO,
+            ),
+            1,
+        ):
             logger.debug(f"N{i}: {cug_id}")
 
             col = (
@@ -325,13 +346,16 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         from_node_id: CUGId
         to_node_id: CUGId
-        logger.debug(f"Preparing {cug_graph.number_of_edges()} cugraph edges")
+        logger.debug(f"Preparing {cug_graph.number_of_edges()} cuGraph edges")
         for i, (from_node_id, to_node_id, *weight) in enumerate(
-            cug_graph.view_edge_list().values_host, 1
+            tqdm(
+                cug_graph.view_edge_list().values_host,
+                desc="Edges",
+                colour="GREEN",
+                disable=logger.level > logging.INFO,
+            ),
+            1,
         ):
-            edge_str = f"({from_node_id}, {to_node_id})"
-            logger.debug(f"E{i}: {edge_str}")
-
             from_n = cug_map[from_node_id]
             to_n = cug_map[to_node_id]
 
@@ -344,6 +368,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             )
 
             if col not in adb_e_cols:
+                edge_str = f"({from_node_id}, {to_node_id})"
                 msg = f"{edge_str} identified as '{col}', which is not in {adb_e_cols}"
                 raise ValueError(msg)
 
