@@ -233,7 +233,9 @@ def test_cug_to_adb_invalid_collections() -> None:
     ]
     # Raise ValueError on invalid vertex collection identification
     with pytest.raises(ValueError):
-        adbcug_adapter.cugraph_to_arangodb("Drivers", cug_g_1, e_d_1)
+        adbcug_adapter.cugraph_to_arangodb(
+            "Drivers", cug_g_1, e_d_1, on_duplicate="replace"
+        )
 
     cug_g_2 = get_likes_graph()
     e_d_2 = [
@@ -250,7 +252,9 @@ def test_cug_to_adb_invalid_collections() -> None:
     ]
     # Raise ValueError on invalid edge collection identification
     with pytest.raises(ValueError):
-        likes_adbcug_adapter.cugraph_to_arangodb("Feelings", cug_g_2, e_d_2)
+        likes_adbcug_adapter.cugraph_to_arangodb(
+            "Feelings", cug_g_2, e_d_2, on_duplicate="replace"
+        )
 
 
 def assert_arangodb_data(
