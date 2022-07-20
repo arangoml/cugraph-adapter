@@ -410,7 +410,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 RETURN doc
         """
 
-        return self.__db.aql.execute(aql, count=True, bind_vars={'@col': col}, **query_options)
+        return self.__db.aql.execute(
+            aql, count=True, bind_vars={"@col": col}, **query_options
+        )
 
     def __insert_adb_docs(
         self, adb_documents: DefaultDict[str, List[Json]], import_options: Any
