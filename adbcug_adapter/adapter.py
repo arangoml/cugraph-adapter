@@ -113,12 +113,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         adb_v: Json
         for v_col, _ in metagraph["vertexCollections"].items():
-            total = self.__db.collection(v_col).count()
-            logger.debug(f"Preparing {total} '{v_col}' vertices")
+            logger.debug(f"Preparing '{v_col}' vertices")
 
+            cursor = self.__fetch_adb_docs(v_col, query_options)
             for adb_v in tqdm(
-                self.__fetch_adb_docs(v_col, query_options),
-                total=total,
+                cursor,
+                total=cursor.count(),
                 desc=v_col,
                 colour="CYAN",
                 disable=logger.level > logging.INFO,
@@ -131,12 +131,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         adb_e: Json
         for e_col, _ in metagraph["edgeCollections"].items():
-            total = self.__db.collection(e_col).count()
-            logger.debug(f"Preparing {total} '{e_col}' edges")
+            logger.debug(f"Preparing '{e_col}' edges")
 
+            cursor = self.__fetch_adb_docs(e_col, query_options)
             for adb_e in tqdm(
-                self.__fetch_adb_docs(e_col, query_options),
-                total=total,
+                cursor,
+                total=cursor.count(),
                 desc=e_col,
                 colour="GREEN",
                 disable=logger.level > logging.INFO,
@@ -405,12 +405,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :return: Result cursor.
         :rtype: arango.cursor.Cursor
         """
-        aql = f"""
-            FOR doc IN {col}
+        aql = """
+            FOR doc IN @@col
                 RETURN doc
         """
 
-        return self.__db.aql.execute(aql, **query_options)
+        return self.__db.aql.execute(aql, count=True, bind_vars={'@col': col}, **query_options)
 
     def __insert_adb_docs(
         self, adb_documents: DefaultDict[str, List[Json]], import_options: Any
