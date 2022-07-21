@@ -11,6 +11,7 @@ from arango.result import Result
 from cudf import DataFrame
 from cugraph import Graph as CUGGraph
 from cugraph import MultiGraph as CUGMultiGraph
+from tqdm import tqdm
 
 from .abc import Abstract_ADBCUG_Adapter
 from .controller import ADBCUG_Controller
@@ -56,11 +57,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
     @property
     def db(self) -> Database:
-        return self.__db
+        return self.__db  # pragma: no cover
 
     @property
     def cntrl(self) -> ADBCUG_Controller:
-        return self.__cntrl
+        return self.__cntrl  # pragma: no cover
 
     def set_logging(self, level: Union[int, str]) -> None:
         logger.setLevel(level)
@@ -103,36 +104,55 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             },
         }
         """
-        logger.debug(f"Starting arangodb_to_cugraph({name}, ...):")
+        logger.debug(f"--arangodb_to_cugraph('{name}')--")
 
         # Maps ArangoDB vertex IDs to cuGraph node IDs
-        adb_map: Dict[str, Dict[str, Union[CUGId, str]]] = dict()
+        adb_map: Dict[str, CUGId] = dict()
+
         cug_edges: List[Tuple[CUGId, CUGId, Any]] = []
 
         adb_v: Json
-        for col, _ in metagraph["vertexCollections"].items():
-            logger.debug(f"Preparing '{col}' vertices")
-            for adb_v in self.__fetch_adb_docs(col, query_options):
+        for v_col, _ in metagraph["vertexCollections"].items():
+            logger.debug(f"Preparing '{v_col}' vertices")
+
+            cursor = self.__fetch_adb_docs(v_col, query_options)
+            for adb_v in tqdm(
+                cursor,
+                total=cursor.count(),
+                desc=v_col,
+                colour="CYAN",
+                disable=logger.level > logging.INFO,
+            ):
                 adb_id: str = adb_v["_id"]
-                self.__cntrl._prepare_arangodb_vertex(adb_v, col)
+                self.__cntrl._prepare_arangodb_vertex(adb_v, v_col)
                 cug_id: str = adb_v["_id"]
-                adb_map[adb_id] = {"cug_id": cug_id, "collection": col}
+
+                adb_map[adb_id] = cug_id
 
         adb_e: Json
-        for col, _ in metagraph["edgeCollections"].items():
-            logger.debug(f"Preparing '{col}' edges")
-            for adb_e in self.__fetch_adb_docs(col, query_options):
-                from_node_id: CUGId = adb_map[adb_e["_from"]]["cug_id"]
-                to_node_id: CUGId = adb_map[adb_e["_to"]]["cug_id"]
+        for e_col, _ in metagraph["edgeCollections"].items():
+            logger.debug(f"Preparing '{e_col}' edges")
+
+            cursor = self.__fetch_adb_docs(e_col, query_options)
+            for adb_e in tqdm(
+                cursor,
+                total=cursor.count(),
+                desc=e_col,
+                colour="GREEN",
+                disable=logger.level > logging.INFO,
+            ):
+                from_node_id: CUGId = adb_map[adb_e["_from"]]
+                to_node_id: CUGId = adb_map[adb_e["_to"]]
+
                 cug_edges.append((from_node_id, to_node_id, adb_e.get(edge_attr, 0)))
 
         logger.debug(f"Inserting {len(cug_edges)} edges")
         cug_graph = CUGMultiGraph(directed=True)
         cug_graph.from_cudf_edgelist(
-            DataFrame(cug_edges, columns=["src", "dst", "weight"]),
+            DataFrame(cug_edges, columns=["src", "dst", edge_attr]),
             source="src",
             destination="dst",
-            edge_attr="weight",
+            edge_attr=edge_attr,
             renumber=False,
         )
 
@@ -206,7 +226,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         keyify_edges: bool = False,
         overwrite_graph: bool = False,
         edge_attr: str = "weight",
-        **import_options: Dict[str, Any],
+        **import_options: Any,
     ) -> ADBGraph:
         """Create an ArangoDB graph from a cuGraph graph, and a set of edge
         definitions.
@@ -255,7 +275,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             }
         ]
         """
-        logger.debug(f"Starting cugraph_to_arangodb('{name}', ...):")
+        logger.debug(f"--cugraph_to_arangodb('{name}')--")
 
         if overwrite_graph:
             logger.debug("Overwrite graph flag is True. Deleting old graph.")
@@ -266,25 +286,45 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         else:
             adb_graph = self.__db.create_graph(name, edge_definitions)
 
-        adb_v_cols = adb_graph.vertex_collections()
-        adb_e_cols = [e_d["edge_collection"] for e_d in adb_graph.edge_definitions()]
+        adb_v_cols: List[str] = adb_graph.vertex_collections()
+        adb_e_cols: List[str] = [
+            e_d["edge_collection"] for e_d in adb_graph.edge_definitions()
+        ]
 
         has_one_vcol = len(adb_v_cols) == 1
         has_one_ecol = len(adb_e_cols) == 1
         logger.debug(f"Is graph '{name}' homogeneous? {has_one_vcol and has_one_ecol}")
 
-        cug_map = dict()  # Maps cuGraph node IDs to ArangoDB vertex IDs
+        # Maps cuGraph node IDs to ArangoDB vertex IDs
+        cug_map: Dict[CUGId, Json] = dict()
+
+        # Stores to-be-inserted ArangoDB documents by collection name
         adb_documents: DefaultDict[str, List[Json]] = defaultdict(list)
 
         cug_id: CUGId
         cug_nodes = cug_graph.nodes().values_host
-        logger.debug(f"Preparing {len(cug_nodes)} cugraph nodes")
-        for i, cug_id in enumerate(cug_nodes, 1):
+        logger.debug(f"Preparing {len(cug_nodes)} cuGraph nodes")
+        for i, cug_id in enumerate(
+            tqdm(
+                cug_nodes,
+                desc="Nodes",
+                colour="CYAN",
+                disable=logger.level > logging.INFO,
+            ),
+            1,
+        ):
+            logger.debug(f"N{i}: {cug_id}")
+
             col = (
                 adb_v_cols[0]
                 if has_one_vcol
                 else self.__cntrl._identify_cugraph_node(cug_id, adb_v_cols)
             )
+
+            if col not in adb_v_cols:
+                msg = f"'{cug_id}' identified as '{col}', which is not in {adb_v_cols}"
+                raise ValueError(msg)
+
             key = (
                 self.__cntrl._keyify_cugraph_node(cug_id, col)
                 if keyify_nodes
@@ -301,11 +341,20 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
             adb_documents[col].append({"_id": adb_v_id})
 
+        self.__insert_adb_docs(adb_documents, import_options)
+        adb_documents.clear()  # for memory purposes
+
         from_node_id: CUGId
         to_node_id: CUGId
-        logger.debug(f"Preparing {cug_graph.number_of_edges()} cugraph edges")
+        logger.debug(f"Preparing {cug_graph.number_of_edges()} cuGraph edges")
         for i, (from_node_id, to_node_id, *weight) in enumerate(
-            cug_graph.view_edge_list().values_host, 1
+            tqdm(
+                cug_graph.view_edge_list().values_host,
+                desc="Edges",
+                colour="GREEN",
+                disable=logger.level > logging.INFO,
+            ),
+            1,
         ):
             from_n = cug_map[from_node_id]
             to_n = cug_map[to_node_id]
@@ -313,8 +362,16 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             col = (
                 adb_e_cols[0]
                 if has_one_ecol
-                else self.__cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
+                else self.__cntrl._identify_cugraph_edge(
+                    from_n, to_n, adb_e_cols, weight[0] if weight else None
+                )
             )
+
+            if col not in adb_e_cols:
+                edge_str = f"({from_node_id}, {to_node_id})"
+                msg = f"{edge_str} identified as '{col}', which is not in {adb_e_cols}"
+                raise ValueError(msg)
+
             key = (
                 self.__cntrl._keyify_cugraph_edge(from_n, to_n, col)
                 if keyify_edges
@@ -332,10 +389,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
             adb_documents[col].append(adb_edge)
 
-        for col, doc_list in adb_documents.items():  # import documents into ArangoDB
-            logger.debug(f"Inserting {len(doc_list)} documents into '{col}'")
-            result = self.__db.collection(col).import_bulk(doc_list, **import_options)
-            logger.debug(result)
+        self.__insert_adb_docs(adb_documents, import_options)
 
         logger.info(f"Created ArangoDB '{name}' Graph")
         return adb_graph
@@ -351,9 +405,27 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :return: Result cursor.
         :rtype: arango.cursor.Cursor
         """
-        aql = f"""
-            FOR doc IN {col}
+        aql = """
+            FOR doc IN @@col
                 RETURN doc
         """
 
-        return self.__db.aql.execute(aql, **query_options)
+        return self.__db.aql.execute(
+            aql, count=True, bind_vars={"@col": col}, **query_options
+        )
+
+    def __insert_adb_docs(
+        self, adb_documents: DefaultDict[str, List[Json]], import_options: Any
+    ) -> None:
+        """Insert ArangoDB documents into their ArangoDB collection.
+
+        :param adb_documents: To-be-inserted ArangoDB documents
+        :type adb_documents: DefaultDict[str, List[Json]]
+        :param import_options: Keyword arguments to specify additional
+            parameters for ArangoDB document insertion. Full parameter list:
+            https://docs.python-arango.com/en/main/specs.html#arango.collection.Collection.import_bulk
+        """
+        for col, doc_list in adb_documents.items():
+            logger.debug(f"Inserting {len(doc_list)} documents into '{col}'")
+            result = self.__db.collection(col).import_bulk(doc_list, **import_options)
+            logger.debug(result)

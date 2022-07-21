@@ -52,6 +52,9 @@ class Abstract_ADBCUG_Adapter(ABC):
     def __fetch_adb_docs(self) -> None:
         raise NotImplementedError  # pragma: no cover
 
+    def __insert_adb_docs(self) -> None:
+        raise NotImplementedError  # pragma: no cover
+
 
 class Abstract_ADBCUG_Controller(ABC):
     def _prepare_arangodb_vertex(self, adb_vertex: Json, col: str) -> None:
@@ -65,6 +68,7 @@ class Abstract_ADBCUG_Controller(ABC):
         from_cug_node: Json,
         to_cug_node: Json,
         adb_e_cols: List[str],
+        weight: Optional[Any] = None,
     ) -> str:
         raise NotImplementedError  # pragma: no cover
 

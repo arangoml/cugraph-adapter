@@ -12,8 +12,8 @@
 <!-- [![Downloads](https://img.shields.io/conda/dn/arangodb/adbcug-adapter?style=for-the-badge&color=282661&label=Downloads)](https://anaconda.org/arangodb/adbcug-adapter/badges/downloads.svg
 ) -->
 
-<a href="https://www.arangodb.com/" rel="arangodb.com">![](./examples/assets/logos/ArangoDB_logo.png)</a>
-<a href="https://github.com/rapidsai/cugraph" rel="github.com/rapidsai/cugraph"><img src="./examples/assets/logos/rapids_logo.png" width=30% height=30%></a>
+<a href="https://www.arangodb.com/" rel="arangodb.com">![](https://raw.githubusercontent.com/arangoml/cugraph-adapter/master/examples/assets/logos/ArangoDB_logo.png)</a>
+<a href="https://github.com/rapidsai/cugraph" rel="github.com/rapidsai/cugraph"><img src="https://raw.githubusercontent.com/arangoml/cugraph-adapter/master/examples/assets/logos/rapids_logo.png" width=30% height=30%></a>
 
 The ArangoDB-cuGraph Adapter exports Graphs from ArangoDB, the multi-model database for graph & beyond, into RAPIDS cuGraph, a library of collective GPU-accelerated graph algorithms, and vice-versa.
 

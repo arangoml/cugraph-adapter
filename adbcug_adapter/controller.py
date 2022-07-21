@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List
+from typing import Any, List, Optional
 
 from .abc import Abstract_ADBCUG_Controller
 from .typings import CUGId, Json
@@ -30,14 +30,14 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :param col: The ArangoDB collection the vertex belongs to.
         :type col: str
         """
-        return
+        pass
 
     def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
         """Given a cuGraph node, and a list of ArangoDB vertex collections defined,
         identify which ArangoDB vertex collection it should belong to.
 
         NOTE: You must override this function if len(**adb_v_cols**) > 1
-        OR **cug_node_id* does NOT comply to ArangoDB standards
+        AND **cug_node_id* does NOT comply to ArangoDB standards
         (i.e "{collection}/{key}").
 
         :param cug_node_id: The cuGraph ID of the vertex.
@@ -57,6 +57,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         from_cug_node: Json,
         to_cug_node: Json,
         adb_e_cols: List[str],
+        weight: Optional[Any] = None,
     ) -> str:
         """Given a pair of connected cuGraph nodes, and a list of ArangoDB
         edge collections defined, identify which ArangoDB edge collection it
@@ -76,6 +77,8 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
             by the **edge_definitions** parameter of
             ADBCUG_Adapter.cugraph_to_arangodb()
         :type adb_e_cols: List[str]
+        :param weight: The edge attribute (i.e weight) value of the edge.
+        :type weight: any
         :return: The ArangoDB collection name
         :rtype: str
         """
@@ -100,7 +103,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         # Otherwise, user must override this function if custom ArangoDB _key
         # values are required for nodes
         adb_vertex_id: str = str(cug_node_id)
-        return adb_vertex_id.split("/")[1]
+        return self._string_to_arangodb_key_helper(adb_vertex_id.split("/")[1])
 
     def _keyify_cugraph_edge(
         self,
