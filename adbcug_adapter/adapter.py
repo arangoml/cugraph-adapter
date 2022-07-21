@@ -313,8 +313,6 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             ),
             1,
         ):
-            logger.debug(f"N{i}: {cug_id}")
-
             col = (
                 adb_v_cols[0]
                 if has_one_vcol
