@@ -327,7 +327,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 else self.__cntrl._identify_cugraph_node(cug_id, adb_v_cols)
             )
 
-            if col not in adb_v_cols:
+            if not has_one_vcol and col not in adb_v_cols:
                 msg = f"'{cug_id}' identified as '{col}', which is not in {adb_v_cols}"
                 raise ValueError(msg)
 
@@ -377,7 +377,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 )
             )
 
-            if col not in adb_e_cols:
+            if not has_one_ecol and col not in adb_e_cols:
                 msg = f"{edge_str} identified as '{col}', which is not in {adb_e_cols}"
                 raise ValueError(msg)
 
