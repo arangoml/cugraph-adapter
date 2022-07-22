@@ -23,7 +23,7 @@ requirements:
     - cudatoolkit>=11.2
     - cugraph>=21.12
     - python-arango>=7.4.1
-    - tqdm>=4.64.0
+    - rich>=12.5.1
     - python>=3.7,<3.10
 
 about:
