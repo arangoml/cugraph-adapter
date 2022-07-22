@@ -356,7 +356,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         for i, (from_node_id, to_node_id, *weight) in enumerate(
             track(
                 cug_graph.view_edge_list().values_host,
-                desc="Edges",
+                description="Edges",
                 complete_style="#5E3108",
                 finished_style="#5E3108",
                 disable=logger.level != logging.INFO,
