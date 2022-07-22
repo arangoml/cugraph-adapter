@@ -1,3 +1,148 @@
+## 1.1.0 (2022-07-22)
+
+### New
+
+* More adapter housekeeping (#20) [Anthony Mahanna]
+
+  * initial commit
+
+  * cleanup
+
+  * new: debug logs on individual node & edge levels
+
+  Is this too much?
+
+  * cleanup
+
+  * new: pass edge weight value to _identify_cugraph_edge controller method
+
+  * new: test_cug_to_adb_invalid_collections case
+
+  * fix: flake8
+
+  * fix: mypy
+
+  * fix: tests
+
+  * update notebook
+
+  * cleanup
+
+  * fix: logger debug
+
+  * remove: overwrite option in test
+
+  * Revert "remove: overwrite option in test"
+
+  This reverts commit ee5e53c167974c314abd245bcd1fd59596cab4f4.
+
+  * new: __insert_adb_docs
+
+  also: replaces the "weight" DataFrame column name with whatever specified in the **edge_attr** parameter
+
+  * cleanup config: tests
+
+  * replace: node/edge level debug statements in favor of `tqdm` progress ba…
+
+  * fix: tqdm as a dependency
+
+  * pragma: no cover
+
+  * Update README.md
+
+  * Update adapter.py
+
+  * fix: black
+
+* Adjust cuGraph to ArangoDB for increased accessibility to python-arango interface (#18) [Anthony Mahanna]
+
+  * #17: initial commit
+
+  * fix: typo
+
+  * Update build.yml
+
+  * disable overwrite
+
+  (the self-hosted runners are using the same arangodb instance)
+
+  * attempt: re-enable overwrite
+
+  * Update README.md
+
+  * Update README.md
+
+  * remove: __validate_attributes()
+
+  Uncessary noise, replaced in favor of proper docstring examples
+
+  * chg: #18 (after redefining scope)
+
+  * @aMahanna new: CodeQL Action v2
+
+  * fix: mypy
+
+  * fix: typo
+
+  * bump: python-arango version
+
+  * cleanup: documentation
+
+* Custom edge attribute  (#15) [Anthony Mahanna]
+
+  * initial commit
+
+  * new: custom edge attribute for cuGraph to ArangoDB
+
+### Fix
+
+* Notebook wget. [aMahanna]
+
+* Typo. [aMahanna]
+
+* Dev.yml. [aMahanna]
+
+* Inconsistent testing in cuGraph to ArangoDB (#22) [Anthony Mahanna]
+
+  * #16: initial commit
+
+  * temp: create 3 databases
+
+  * remove: create_database
+
+  * fix: gh action matrix
+
+  * config cleanup
+
+  * update pytest in actions
+
+  * fix: typo
+
+  * Update setup.cfg
+
+### Other
+
+* Replace `tqdm` with `rich` [aMahanna]
+
+* Remove: duplicate log. [aMahanna]
+
+* Fix cugraph notebook (#19) [Anthony Mahanna]
+
+  * initial commit
+
+  * add fix to output notebook
+
+* Update README.md. [aMahanna]
+
+* Update README.md. [Anthony Mahanna]
+
+* Update README.md. [aMahanna]
+
+* Changelog: release 1.0.0 (#14) [github-actions[bot]]
+
+  !gitchangelog
+
+
 ## 1.0.0 (2022-05-25)
 
 ### New
