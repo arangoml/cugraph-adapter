@@ -418,7 +418,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 RETURN doc
         """
 
-        with progress(f"Fetching '{col}' documents") as p:
+        with progress(f"Export: {col}") as p:
             p.add_task("__fetch_adb_docs")
 
             return self.__db.aql.execute(
@@ -437,7 +437,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             https://docs.python-arango.com/en/main/specs.html#arango.collection.Collection.import_bulk
         """
         for col, doc_list in adb_documents.items():
-            with progress(f"Inserting '{col}' documents ({len(doc_list)})") as p:
+            with progress(f"Import: {col} ({len(doc_list)})") as p:
                 p.add_task("__insert_adb_docs")
 
                 result = self.__db.collection(col).import_bulk(doc_list, **kwargs)
