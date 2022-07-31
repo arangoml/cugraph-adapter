@@ -224,6 +224,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         name: str,
         cug_graph: CUGGraph,
         edge_definitions: Optional[List[Json]] = None,
+        orphan_collections: Optional[List[str]] = None,
         keyify_nodes: bool = False,
         keyify_edges: bool = False,
         overwrite_graph: bool = False,
@@ -242,6 +243,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             "from_vertex_collections" and "to_vertex_collections" (see below
             for example). Can be omitted if the graph already exists.
         :type edge_definitions: List[adbnx_adapter.typings.Json]
+        :param orphan_collections: A list of vertex collections that will be stored as
+            orphans in the ArangoDB graph. Can be omitted if the graph already exists.
+        :type orphan_collections: List[str]
         :param keyify_nodes: If set to True, will create custom node keys based on the
             behavior of ADBCUG_Controller._keyify_cugraph_node().
             Otherwise, ArangoDB _key values for vertices will range from 1 to N,
@@ -288,7 +292,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             adb_graph = self.__db.graph(name)
         else:
             logger.debug(f"Creating graph {name}")
-            adb_graph = self.__db.create_graph(name, edge_definitions)
+            adb_graph = self.__db.create_graph(
+                name, edge_definitions, orphan_collections
+            )
 
         adb_v_cols: List[str] = adb_graph.vertex_collections()
         adb_e_cols: List[str] = [

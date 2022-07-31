@@ -51,47 +51,76 @@ from adbcug_adapter import ADBCUG_Adapter
 db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="")
 
 adbcug_adapter = ADBCUG_Adapter(db)
+```
 
-# Use Case 1.1: ArangoDB to cuGraph via Graph name
-cug_fraud_graph = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
+### ArangoDB to cuGraph
+```py
+# 1.1: ArangoDB to cuGraph via Graph name
+cug_g = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
 
-# Use Case 1.2: ArangoDB to cuGraph via Collection names
-cug_fraud_graph_2 = adbcug_adapter.arangodb_collections_to_cugraph(
+# 1.2: ArangoDB to cuGraph via Collection names
+cug_g = adbcug_adapter.arangodb_collections_to_cugraph(
     "fraud-detection",
     {"account", "bank", "branch", "Class", "customer"},  #  Vertex collections
     {"accountHolder", "Relationship", "transaction"},  # Edge collections
 )
+```
 
-# Use Case 2: cuGraph to ArangoDB:
-## 1) Create a sample cuGraph
-cug_divisibility_graph = cugraph.MultiGraph(directed=True)
-cug_divisibility_graph.from_cudf_edgelist(
-    cudf.DataFrame(
-        [
-            (f"numbers/{j}", f"numbers/{i}", j / i)
-            for i in range(1, 101)
-            for j in range(1, 101)
-            if j % i == 0
-        ],
-        columns=["src", "dst", "weight"],
-    ),
-    source="src",
-    destination="dst",
-    edge_attr="weight",
-    renumber=False,
-)
+### cuGraph to ArangoDB
+```py
+# 2.1: cuGraph Homogeneous graph to ArangoDB
+edges = [("Person/A", "Person/B"), ("Person/B", "Person/C")]
+cug_g = cugraph.MultiGraph(directed=True)
+cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst"]), source="src", destination="dst", renumber=False)
 
-## 2) Create ArangoDB Edge Definitions
 edge_definitions = [
     {
-        "edge_collection": "is_divisible_by",
-        "from_vertex_collections": ["numbers"],
-        "to_vertex_collections": ["numbers"],
+        "edge_collection": "knows",
+        "from_vertex_collections": ["Person"],
+        "to_vertex_collections": ["Person"],
     }
 ]
 
-## 3) Convert cuGraph to ArangoDB
-adb_graph = adbcug_adapter.cugraph_to_arangodb("DivisibilityGraph", cug_graph, edge_definitions)
+adb_g = adbcug_adapter.cugraph_to_arangodb("Knows", cug_g, edge_definitions) # Also try it with `keyify_nodes=True` !
+
+# 2.2: cuGraph Heterogeneous graph to ArangoDB with ArangoDB node IDs
+edges = []
+for i in range(1, 101):
+    for j in range(1, 101):
+        if j % i == 0:
+            # Notice that the NetworkX node IDs are following ArangoDB _id formatting standards (i.e `collection_name/node_key`)
+            edges.append((f"numbers_j/{j}", f"numbers_i/{i}", j / i)) 
+
+cug_g = cugraph.MultiGraph(directed=True)
+cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst", "quotient"]), source="src", destination="dst", edge_attr="quotient", renumber=False)
+
+edge_definitions = [
+    {
+        "edge_collection": "is_divisible_by",
+        "from_vertex_collections": ["numbers_j"],
+        "to_vertex_collections": ["numbers_i"],
+    }
+]
+
+adb_g = adbcug_adapter.cugraph_to_arangodb("Divisibility", cug_g, edge_definitions, keyify_nodes=True)
+
+# 2.3 cuGraph Heterogeneous graph to ArangoDB with non-ArangoDB node IDs
+edges = [
+   ('student:101', 'lecture:101'), 
+   ('student:102', 'lecture:102'), 
+   ('student:103', 'lecture:103'), 
+   ('student:103', 'student:101'), 
+   ('student:103', 'student:102'),
+   ('teacher:101', 'lecture:101'),
+   ('teacher:102', 'lecture:102'),
+   ('teacher:103', 'lecture:103'),
+   ('teacher:101', 'teacher:102'),
+   ('teacher:102', 'teacher:103')
+]
+cug_g = cugraph.MultiGraph(directed=True)
+cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst"]), source='src', destination='dst')
+
+### Learn how this example is handled in Colab: https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb#scrollTo=nuVoCZQv6oyi
 ```
 
 ##  Development & Testing

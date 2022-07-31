@@ -42,6 +42,7 @@ class Abstract_ADBCUG_Adapter(ABC):
         name: str,
         cug_graph: CUGGraph,
         edge_definitions: Optional[List[Json]] = None,
+        orphan_collections: Optional[List[str]] = None,
         keyify_nodes: bool = False,
         keyify_edges: bool = False,
         overwrite_graph: bool = False,

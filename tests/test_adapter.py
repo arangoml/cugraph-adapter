@@ -115,16 +115,19 @@ def test_adb_collections_to_cug(
 
 
 @pytest.mark.parametrize(
-    "adapter, name, edge_definitions",
-    [(adbcug_adapter, "fraud-detection", None)],
+    "adapter, name, edge_definitions, orphan_collections",
+    [(adbcug_adapter, "fraud-detection", None, None)],
 )
 def test_adb_graph_to_cug(
-    adapter: ADBCUG_Adapter, name: str, edge_definitions: List[Json]
+    adapter: ADBCUG_Adapter,
+    name: str,
+    edge_definitions: List[Json],
+    orphan_collections: List[str],
 ) -> None:
     # Re-create the graph if defintions are provided
     if edge_definitions:
         db.delete_graph(name, ignore_missing=True)
-        db.create_graph(name, edge_definitions=edge_definitions)
+        db.create_graph(name, edge_definitions, orphan_collections)
 
     arango_graph = db.graph(name)
     v_cols = arango_graph.vertex_collections()
@@ -141,7 +144,7 @@ def test_adb_graph_to_cug(
 
 
 @pytest.mark.parametrize(
-    "adapter, name, cug_g, edge_definitions, \
+    "adapter, name, cug_g, edge_definitions, orphan_collections, \
         keyify_nodes, keyify_edges, overwrite_graph, edge_attr, import_options",
     [
         (
@@ -155,6 +158,7 @@ def test_adb_graph_to_cug(
                     "to_vertex_collections": ["numbers"],
                 }
             ],
+            None,
             True,
             False,
             False,
@@ -165,6 +169,7 @@ def test_adb_graph_to_cug(
             adbcug_adapter,
             "DivisibilityGraph",
             get_divisibility_graph(),
+            None,
             None,
             False,
             False,
@@ -183,6 +188,7 @@ def test_adb_graph_to_cug(
                     "to_vertex_collections": ["col_b"],
                 }
             ],
+            None,
             True,
             False,
             True,
@@ -196,6 +202,7 @@ def test_cug_to_adb(
     name: str,
     cug_g: CUGGraph,
     edge_definitions: Optional[List[Json]],
+    orphan_collections: Optional[List[str]],
     keyify_nodes: bool,
     keyify_edges: bool,
     overwrite_graph: bool,
@@ -206,6 +213,7 @@ def test_cug_to_adb(
         name,
         cug_g,
         edge_definitions,
+        orphan_collections,
         keyify_nodes,
         keyify_edges,
         overwrite_graph,
