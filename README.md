@@ -88,7 +88,7 @@ edges = []
 for i in range(1, 101):
     for j in range(1, 101):
         if j % i == 0:
-            # Notice that the NetworkX node IDs are following ArangoDB _id formatting standards (i.e `collection_name/node_key`)
+            # Notice that the cuGraph node IDs are following ArangoDB _id formatting standards (i.e `collection_name/node_key`)
             edges.append((f"numbers_j/{j}", f"numbers_i/{i}", j / i)) 
 
 cug_g = cugraph.MultiGraph(directed=True)
