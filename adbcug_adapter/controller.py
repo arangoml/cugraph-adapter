@@ -119,12 +119,12 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         the **keyify_edges** parameter in ADBCUG_Adapter.cugraph_to_arangodb().
 
         NOTE #2: The pair of associated cuGraph nodes can be accessed
-        by the **from_cug_node** & **to_cug_node** parameters, and are guaranteed
-        to have the following attributes: `{"cug_id", "adb_id", "adb_col", "adb_key"}`
+        by the **from_cug_node** & **to_cug_node** parameters, and are objects
+        containing the following metadata: `{"cug_id", "adb_id", "adb_col", "adb_key"}`
 
-        :param from_cug_node: The cuGraph node representing the edge source.
+        :param from_cug_node: The cuGraph node metadata representing the edge source.
         :type from_cug_node: adbcug_adapter.typings.Json
-        :param to_cug_node: The cuGraph node representing the edge destination.
+        :param to_cug_node: The cuGraph node metadata representing the edge destination.
         :type to_cug_node: adbcug_adapter.typings.Json
         :param col: The ArangoDB collection the edge belongs to.
         :type col: str
@@ -134,6 +134,38 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         # User must override this function if custom ArangoDB _key values are
         # required for edges
         raise NotImplementedError  # pragma: no cover
+
+    def _prepare_cugraph_node(self, cug_node: Json, col: str) -> None:
+        """Prepare a cuGraph node before it gets inserted into the ArangoDB
+        collection **col**.
+
+        Given an ArangoDB representation of a cuGraph node (i.e {_key: ...}),
+        you can (optionally) modify the object before it gets inserted into its
+        designated ArangoDB collection.
+
+        :param cug_node: The ArangoDB representation of the cuGraph node
+            to (optionally) modify.
+        :type cug_node: adbcug_adapter.typings.Json
+        :param col: The ArangoDB collection associated to the node.
+        :type col: str
+        """
+        pass
+
+    def _prepare_cugraph_edge(self, cug_edge: Json, col: str) -> None:
+        """Prepare a cuGraph edge before it gets inserted into the ArangoDB
+        collection **col**.
+
+        Given an ArangoDB representation of a cuGraph edge
+        (i.e {_key: ..., _from: ..., _to: ...}), you can (optionally) modify
+        the object before it gets inserted into its designated ArangoDB collection.
+
+        :param cug_edge: The ArangoDB representation of the cuGraph edge
+            to (optionally) modify.
+        :type cug_edge: adbcug_adapter.typings.Json
+        :param col: The ArangoDB collection associated to the edge.
+        :type col: str
+        """
+        pass
 
     def _string_to_arangodb_key_helper(self, string: str) -> str:
         """Given a string, derive a valid ArangoDB _key string.

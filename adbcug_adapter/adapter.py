@@ -51,7 +51,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             raise TypeError(msg)
 
         self.__db = db
-        self.__cntrl: ADBCUG_Controller = controller
+        self.__cntrl = controller
 
         logger.info(f"Instantiated ADBCUG_Adapter with database '{db.name}'")
 
@@ -71,6 +71,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         name: str,
         metagraph: ADBMetagraph,
         edge_attr: str = "weight",
+        default_edge_attr_value: int = 0,
         **query_options: Any,
     ) -> CUGMultiGraph:
         """Create a cuGraph graph from an ArangoDB metagraph.
@@ -82,8 +83,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :type metagraph: adbcug_adapter.typings.ADBMetagraph
         :param edge_attr: The weight attribute name of your ArangoDB edges.
             Defaults to 'weight'. If no weight attribute is present,
-            will set the edge weight value to 0.
+            will set the edge weight value to **default_edge_attr_value**.
         :type edge_attr: str
+        :param default_edge_attr_value: The default value set to the edge attribute
+            if **edge_attr** is not present in the ArangoDB edge. Defaults to 0.
+        :type default_edge_attr_value: int
         :param query_options: Keyword arguments to specify AQL query options when
             fetching documents from the ArangoDB instance. Full parameter list:
             https://docs.python-arango.com/en/main/specs.html#arango.aql.AQL.execute
@@ -122,7 +126,6 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 description=v_col,
                 complete_style="#8000FF",
                 finished_style="#8000FF",
-                disable=logger.level != logging.INFO,
             ):
                 adb_id: str = adb_v["_id"]
                 self.__cntrl._prepare_arangodb_vertex(adb_v, v_col)
@@ -141,12 +144,17 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 description=e_col,
                 complete_style="#9C46FF",
                 finished_style="#9C46FF",
-                disable=logger.level != logging.INFO,
             ):
                 from_node_id: CUGId = adb_map[adb_e["_from"]]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]
 
-                cug_edges.append((from_node_id, to_node_id, adb_e.get(edge_attr, 0)))
+                cug_edges.append(
+                    (
+                        from_node_id,
+                        to_node_id,
+                        adb_e.get(edge_attr, default_edge_attr_value),
+                    )
+                )
 
         logger.debug(f"Inserting {len(cug_edges)} edges")
         cug_graph = CUGMultiGraph(directed=True)
@@ -342,15 +350,16 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 else str(i)
             )
 
-            adb_v_id = col + "/" + key
+            cug_node = {"_key": key}
+            self.__cntrl._prepare_cugraph_node(cug_node, col)
+            adb_documents[col].append(cug_node)
+
             cug_map[cug_id] = {
                 "cug_id": cug_id,
-                "adb_id": adb_v_id,
+                "adb_id": col + "/" + key,
                 "adb_col": col,
                 "adb_key": key,
             }
-
-            adb_documents[col].append({"_id": adb_v_id})
 
         self.__insert_adb_docs(adb_documents, import_options)
         adb_documents.clear()  # for memory purposes
@@ -392,16 +401,17 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 else str(i)
             )
 
-            adb_edge = {
-                "_id": col + "/" + key,
+            cug_edge = {
+                "_key": key,
                 "_from": from_n["adb_id"],
                 "_to": to_n["adb_id"],
             }
 
             if cug_graph.is_weighted():
-                adb_edge[edge_attr] = weight[0]
+                cug_edge[edge_attr] = weight[0]
 
-            adb_documents[col].append(adb_edge)
+            self.__cntrl._prepare_cugraph_edge(cug_edge, col)
+            adb_documents[col].append(cug_edge)
 
         self.__insert_adb_docs(adb_documents, import_options)
 
@@ -441,6 +451,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :param kwargs: Keyword arguments to specify additional
             parameters for ArangoDB document insertion. Full parameter list:
             https://docs.python-arango.com/en/main/specs.html#arango.collection.Collection.import_bulk
+        :type kwargs: Any
         """
         for col, doc_list in adb_documents.items():
             with progress(f"Import: {col} ({len(doc_list)})") as p:
