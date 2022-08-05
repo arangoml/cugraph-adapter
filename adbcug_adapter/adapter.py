@@ -11,12 +11,11 @@ from arango.result import Result
 from cudf import DataFrame
 from cugraph import Graph as CUGGraph
 from cugraph import MultiGraph as CUGMultiGraph
-from rich.progress import track
 
 from .abc import Abstract_ADBCUG_Adapter
 from .controller import ADBCUG_Controller
 from .typings import ADBMetagraph, CUGId, Json
-from .utils import logger, progress
+from .utils import logger, progress, track_adb, track_cug
 
 
 class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
@@ -120,13 +119,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             logger.debug(f"Preparing '{v_col}' vertices")
 
             cursor = self.__fetch_adb_docs(v_col, query_options)
-            for adb_v in track(
-                cursor,
-                total=cursor.count(),
-                description=v_col,
-                complete_style="#8000FF",
-                finished_style="#8000FF",
-            ):
+
+            for adb_v in track_adb(cursor, v_col, "#8000FF"):
                 adb_id: str = adb_v["_id"]
                 self.__cntrl._prepare_arangodb_vertex(adb_v, v_col)
                 cug_id: str = adb_v["_id"]
@@ -138,13 +132,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             logger.debug(f"Preparing '{e_col}' edges")
 
             cursor = self.__fetch_adb_docs(e_col, query_options)
-            for adb_e in track(
-                cursor,
-                total=cursor.count(),
-                description=e_col,
-                complete_style="#9C46FF",
-                finished_style="#9C46FF",
-            ):
+            for adb_e in track_adb(cursor, e_col, "#9C46FF"):
                 from_node_id: CUGId = adb_map[adb_e["_from"]]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]
 
@@ -323,13 +311,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         cug_nodes = cug_graph.nodes().values_host
         logger.debug(f"Preparing {len(cug_nodes)} cuGraph nodes")
         for i, cug_id in enumerate(
-            track(
-                cug_nodes,
-                description="Nodes",
-                complete_style="#97C423",
-                finished_style="#97C423",
-                disable=logger.level != logging.INFO,
-            ),
+            track_cug(cug_nodes, "Nodes", "#97C423"),
             1,
         ):
             logger.debug(f"N{i}: {cug_id}")
@@ -366,15 +348,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         from_node_id: CUGId
         to_node_id: CUGId
+        cug_edges = cug_graph.view_edge_list().values_host
         logger.debug(f"Preparing {cug_graph.number_of_edges()} cuGraph edges")
         for i, (from_node_id, to_node_id, *weight) in enumerate(
-            track(
-                cug_graph.view_edge_list().values_host,
-                description="Edges",
-                complete_style="#5E3108",
-                finished_style="#5E3108",
-                disable=logger.level != logging.INFO,
-            ),
+            track_cug(cug_edges, "Edges", "#5E3108"),
             1,
         ):
             edge_str = f"({from_node_id}, {to_node_id})"
