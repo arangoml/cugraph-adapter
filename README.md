@@ -45,7 +45,7 @@ import cudf
 import cugraph
 from arango import ArangoClient # Python-Arango driver
 
-from adbcug_adapter import ADBCUG_Adapter
+from adbcug_adapter import ADBCUG_Adapter, ADBCUG_Controller
 
 # Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint
 db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="")
@@ -83,7 +83,35 @@ edge_definitions = [
 
 adb_g = adbcug_adapter.cugraph_to_arangodb("Knows", cug_g, edge_definitions) # Also try it with `keyify_nodes=True` !
 
-# 2.2: cuGraph Heterogeneous graph to ArangoDB with ArangoDB node IDs
+# 2.2: cuGraph to ArangoDB with a custom ADBCUG Controller
+class Custom_ADBCUG_Controller(ADBCUG_Controller):
+    """ArangoDB-cuGraph controller.
+
+    Responsible for controlling how nodes & edges are handled when
+    transitioning from ArangoDB to cuGraph & vice-versa.
+    """
+
+    def _prepare_cugraph_node(self, cug_node: dict, col: str) -> None:
+        """Prepare a cuGraph node before it gets inserted into the ArangoDB
+        collection **col**.
+
+        :param cug_node: The cuGraph node object to (optionally) modify.
+        :param col: The ArangoDB collection the node belongs to.
+        """
+        cug_node["foo"] = "bar"
+
+    def _prepare_cugraph_edge(self, cug_edge: dict, col: str) -> None:
+        """Prepare a cuGraph edge before it gets inserted into the ArangoDB
+        collection **col**.
+
+        :param cug_edge: The cuGraph edge object to (optionally) modify.
+        :param col: The ArangoDB collection the edge belongs to.
+        """
+        cug_edge["bar"] = "foo"
+
+adb_g = ADBCUG_Adapter(db, Custom_ADBCUG_Controller()).cugraph_to_arangodb("Knows", cug_g, edge_definitions)
+
+# 2.3: cuGraph Heterogeneous graph to ArangoDB with ArangoDB node IDs
 edges = []
 for i in range(1, 101):
     for j in range(1, 101):
@@ -104,7 +132,7 @@ edge_definitions = [
 
 adb_g = adbcug_adapter.cugraph_to_arangodb("Divisibility", cug_g, edge_definitions, keyify_nodes=True)
 
-# 2.3 cuGraph Heterogeneous graph to ArangoDB with non-ArangoDB node IDs
+# 2.4: cuGraph Heterogeneous graph to ArangoDB with non-ArangoDB node IDs
 edges = [
    ('student:101', 'lecture:101'), 
    ('student:102', 'lecture:102'), 
@@ -119,6 +147,8 @@ edges = [
 ]
 cug_g = cugraph.MultiGraph(directed=True)
 cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst"]), source='src', destination='dst')
+
+# ...
 
 ### Learn how this example is handled in Colab: https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb#scrollTo=nuVoCZQv6oyi
 ```
