@@ -15,7 +15,7 @@ from cugraph import MultiGraph as CUGMultiGraph
 from .abc import Abstract_ADBCUG_Adapter
 from .controller import ADBCUG_Controller
 from .typings import ADBMetagraph, CUGId, Json
-from .utils import logger, progress, track_adb, track_cug
+from .utils import logger, progress, track
 
 
 class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
@@ -119,8 +119,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             logger.debug(f"Preparing '{v_col}' vertices")
 
             cursor = self.__fetch_adb_docs(v_col, query_options)
-
-            for adb_v in track_adb(cursor, v_col, "#8000FF"):
+            for adb_v in track(cursor, cursor.count(), v_col, "#8000FF"):
                 adb_id: str = adb_v["_id"]
                 self.__cntrl._prepare_arangodb_vertex(adb_v, v_col)
                 cug_id: str = adb_v["_id"]
@@ -132,7 +131,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             logger.debug(f"Preparing '{e_col}' edges")
 
             cursor = self.__fetch_adb_docs(e_col, query_options)
-            for adb_e in track_adb(cursor, e_col, "#9C46FF"):
+            for adb_e in track(cursor, cursor.count(), e_col, "#9C46FF"):
                 from_node_id: CUGId = adb_map[adb_e["_from"]]
                 to_node_id: CUGId = adb_map[adb_e["_to"]]
 
@@ -309,9 +308,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         cug_id: CUGId
         cug_nodes = cug_graph.nodes().values_host
-        logger.debug(f"Preparing {len(cug_nodes)} cuGraph nodes")
+
+        logger.debug("Preparing cuGraph nodes")
         for i, cug_id in enumerate(
-            track_cug(cug_nodes, "Nodes", "#97C423"),
+            track(cug_nodes, len(cug_nodes), "Nodes", "#97C423"),
             1,
         ):
             logger.debug(f"N{i}: {cug_id}")
@@ -349,9 +349,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         from_node_id: CUGId
         to_node_id: CUGId
         cug_edges = cug_graph.view_edge_list().values_host
-        logger.debug(f"Preparing {cug_graph.number_of_edges()} cuGraph edges")
+
+        logger.debug("Preparing cuGraph edges")
         for i, (from_node_id, to_node_id, *weight) in enumerate(
-            track_cug(cug_edges, "Edges", "#5E3108"),
+            track(cug_edges, len(cug_edges), "Edges", "#5E3108"),
             1,
         ):
             edge_str = f"({from_node_id}, {to_node_id})"
