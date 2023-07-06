@@ -31,6 +31,8 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v2.8.0
       # - name: Run black
       #   run: black --check --verbose --diff --color ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       # - name: Run flake8
