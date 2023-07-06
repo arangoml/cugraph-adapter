@@ -31,8 +31,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-          cache: 'pip'
-          cache-dependency-path: setup.py
       # - name: Run black
       #   run: black --check --verbose --diff --color ${{env.PACKAGE_DIR}} ${{env.TESTS_DIR}}
       # - name: Run flake8
