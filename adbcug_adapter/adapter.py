@@ -150,7 +150,6 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             source="src",
             destination="dst",
             edge_attr=edge_attr,
-            renumber=False,
         )
 
         logger.info(f"Created cuGraph '{name}' Graph")
@@ -348,13 +347,13 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         from_node_id: CUGId
         to_node_id: CUGId
-        cug_edges = cug_graph.view_edge_list().values_host
+        edge_list = cug_graph.view_edge_list()
 
         logger.debug("Preparing cuGraph edges")
-        for i, (from_node_id, to_node_id, *weight) in enumerate(
-            track(cug_edges, len(cug_edges), "Edges", "#5E3108"),
-            1,
-        ):
+        for i in track(range(len(edge_list)), len(edge_list), "Edges", "#5E3108"):
+            from_node_id = edge_list.src[i]
+            to_node_id = edge_list.dst[i]
+
             edge_str = f"({from_node_id}, {to_node_id})"
             logger.debug(f"E{i}: {edge_str}")
 
@@ -364,9 +363,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             col = (
                 adb_e_cols[0]
                 if has_one_ecol
-                else self.__cntrl._identify_cugraph_edge(
-                    from_n, to_n, adb_e_cols, weight[0] if weight else None
-                )
+                else self.__cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
             )
 
             if not has_one_ecol and col not in adb_e_cols:
@@ -386,7 +383,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             }
 
             if cug_graph.is_weighted():
-                cug_edge[edge_attr] = weight[0]
+                cug_edge[edge_attr] = edge_list.weights[i]
 
             self.__cntrl._prepare_cugraph_edge(cug_edge, col)
             adb_documents[col].append(cug_edge)

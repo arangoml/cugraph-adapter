@@ -65,11 +65,7 @@ class Abstract_ADBCUG_Controller(ABC):
         raise NotImplementedError  # pragma: no cover
 
     def _identify_cugraph_edge(
-        self,
-        from_cug_node: Json,
-        to_cug_node: Json,
-        adb_e_cols: List[str],
-        weight: Optional[Any] = None,
+        self, from_cug_node: Json, to_cug_node: Json, adb_e_cols: List[str]
     ) -> str:
         raise NotImplementedError  # pragma: no cover
 

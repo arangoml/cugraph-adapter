@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Any, List, Optional
+from typing import List
 
 from .abc import Abstract_ADBCUG_Controller
 from .typings import CUGId, Json
@@ -53,11 +53,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         return adb_vertex_id.split("/")[0]
 
     def _identify_cugraph_edge(
-        self,
-        from_cug_node: Json,
-        to_cug_node: Json,
-        adb_e_cols: List[str],
-        weight: Optional[Any] = None,
+        self, from_cug_node: Json, to_cug_node: Json, adb_e_cols: List[str]
     ) -> str:
         """Given a pair of connected cuGraph nodes, and a list of ArangoDB
         edge collections defined, identify which ArangoDB edge collection it
@@ -77,8 +73,6 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
             by the **edge_definitions** parameter of
             ADBCUG_Adapter.cugraph_to_arangodb()
         :type adb_e_cols: List[str]
-        :param weight: The edge attribute (i.e weight) value of the edge.
-        :type weight: any
         :return: The ArangoDB collection name
         :rtype: str
         """
