@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, List, Optional
 
+from adb_cloud_connector import get_temp_credentials
 from arango import ArangoClient
 from arango.database import StandardDatabase
 from cudf import DataFrame
@@ -22,20 +23,23 @@ bipartite_adbcug_adapter: ADBCUG_Adapter
 likes_adbcug_adapter: ADBCUG_Adapter
 
 
-def pytest_addoption(parser: Any) -> None:
-    parser.addoption("--url", action="store", default="http://localhost:8529")
-    parser.addoption("--dbName", action="store", default="_system")
-    parser.addoption("--username", action="store", default="root")
-    parser.addoption("--password", action="store", default="")
+# def pytest_addoption(parser: Any) -> None:
+#     parser.addoption("--url", action="store", default="http://localhost:8529")
+#     parser.addoption("--dbName", action="store", default="_system")
+#     parser.addoption("--username", action="store", default="root")
+#     parser.addoption("--password", action="store", default="")
 
 
 def pytest_configure(config: Any) -> None:
-    con = {
-        "url": config.getoption("url"),
-        "username": config.getoption("username"),
-        "password": config.getoption("password"),
-        "dbName": config.getoption("dbName"),
-    }
+    # con = {
+    #     "url": config.getoption("url"),
+    #     "username": config.getoption("username"),
+    #     "password": config.getoption("password"),
+    #     "dbName": config.getoption("dbName"),
+    # }
+
+    # temporary workaround for build.yml purposes
+    con = get_temp_credentials()
 
     print("----------------------------------------")
     print("URL: " + con["url"])
