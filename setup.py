@@ -14,7 +14,7 @@ setup(
     keywords=["arangodb", "cugraph", "adapter"],
     packages=["adbcug_adapter"],
     include_package_data=True,
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     license="Apache Software License",
     install_requires=[
         "python-arango>=7.4.1",
@@ -23,10 +23,10 @@ setup(
     ],
     extras_require={
         "dev": [
-            "black",
-            "flake8>=3.8.0",
-            "isort>=5.0.0",
-            "mypy>=0.790",
+            "black==23.3.0",
+            "flake8==6.0.0",
+            "isort==5.12.0",
+            "mypy==1.4.1",
             "pytest>=6.0.0",
             "pytest-cov>=2.0.0",
             "coveralls>=3.3.1",

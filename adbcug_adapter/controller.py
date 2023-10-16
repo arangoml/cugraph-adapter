@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List
+from typing import List, Dict
 
 from .abc import Abstract_ADBCUG_Controller
 from .typings import CUGId, Json
@@ -53,7 +53,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         return adb_vertex_id.split("/")[0]
 
     def _identify_cugraph_edge(
-        self, from_cug_node: Json, to_cug_node: Json, adb_e_cols: List[str]
+        self, from_node_id: str, to_node_id: str, adb_e_cols: List[str], cug_map: Dict[CUGId, str]
     ) -> str:
         """Given a pair of connected cuGraph nodes, and a list of ArangoDB
         edge collections defined, identify which ArangoDB edge collection it
@@ -61,18 +61,16 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
 
         NOTE: You must override this function if len(**adb_e_cols**) > 1.
 
-        NOTE #2: The pair of associated cuGraph nodes can be accessed
-        by the **from_cug_node** & **to_cug_node** parameters, and are guaranteed
-        to have the following attributes: `{"cug_id", "adb_id", "adb_col", "adb_key"}`
-
-        :param from_cug_node: The cuGraph node representing the edge source.
-        :type from_cug_node: adbcug_adapter.typings.Json
-        :param to_cug_node: The cuGraph node representing the edge destination.
-        :type to_cug_node: adbcug_adapter.typings.Json
+        :param from_node_id: The ID of the cuGraph node representing the edge source.
+        :type from_node_id: str
+        :param to_node_id: The ID of the cuGraph node representing the edge destination.
+        :type to_node_id: str
         :param adb_e_cols: All ArangoDB edge collections specified
             by the **edge_definitions** parameter of
             ADBCUG_Adapter.cugraph_to_arangodb()
         :type adb_e_cols: List[str]
+        :param cug_map: The mapping of cuGraph node IDs to ArangoDB vertex IDs.
+        :type cug_map: Dict[CUGId, str]
         :return: The ArangoDB collection name
         :rtype: str
         """
@@ -88,7 +86,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
 
         :param cug_node_id: The cuGraph node id.
         :type cug_node_id: adbcug_adapter.typings.CUGId
-        :param col: The ArangoDB collection the vertex belongs to.
+        :param col: The ArangoDB collection the **cug_node_id** belongs to.
         :type col: str
         :return: A valid ArangoDB _key value.
         :rtype: str
@@ -101,9 +99,10 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
 
     def _keyify_cugraph_edge(
         self,
-        from_cug_node: Json,
-        to_cug_node: Json,
+        from_node_id: str,
+        to_node_id: str,
         col: str,
+        cug_map: Dict[CUGId, str],
     ) -> str:
         """Given a pair of connected cuGraph nodes, and the collection
         this edge belongs to, derive the edge's valid ArangoDB key.
@@ -112,16 +111,14 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         _key values from your cuGraph edges. To enable the use of this method, enable
         the **keyify_edges** parameter in ADBCUG_Adapter.cugraph_to_arangodb().
 
-        NOTE #2: The pair of associated cuGraph nodes can be accessed
-        by the **from_cug_node** & **to_cug_node** parameters, and are objects
-        containing the following metadata: `{"cug_id", "adb_id", "adb_col", "adb_key"}`
-
-        :param from_cug_node: The cuGraph node metadata representing the edge source.
-        :type from_cug_node: adbcug_adapter.typings.Json
-        :param to_cug_node: The cuGraph node metadata representing the edge destination.
-        :type to_cug_node: adbcug_adapter.typings.Json
+        :param from_node_id: The ID of the cuGraph node representing the edge source.
+        :type from_node_id: str
+        :param to_node_id: The ID of the cuGraph node representing the edge destination.
+        :type to_node_id: str
         :param col: The ArangoDB collection the edge belongs to.
         :type col: str
+        :param cug_map: The mapping of cuGraph node IDs to ArangoDB vertex IDs.
+        :type cug_map: Dict[CUGId, str]
         :return: A valid ArangoDB _key value.
         :rtype: str
         """

@@ -69,7 +69,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         self,
         name: str,
         metagraph: ADBMetagraph,
-        edge_attr: str = "weight",
+        edge_attr: str = "weights",
         default_edge_attr_value: int = 0,
         **query_options: Any,
     ) -> CUGMultiGraph:
@@ -81,7 +81,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             collections to import to cuGraph.
         :type metagraph: adbcug_adapter.typings.ADBMetagraph
         :param edge_attr: The weight attribute name of your ArangoDB edges.
-            Defaults to 'weight'. If no weight attribute is present,
+            Defaults to 'weights'. If no weight attribute is present,
             will set the edge weight value to **default_edge_attr_value**.
         :type edge_attr: str
         :param default_edge_attr_value: The default value set to the edge attribute
@@ -144,9 +144,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 )
 
         logger.debug(f"Inserting {len(cug_edges)} edges")
+
         cug_graph = CUGMultiGraph(directed=True)
+        df = DataFrame(cug_edges, columns=["src", "dst", edge_attr])
         cug_graph.from_cudf_edgelist(
-            DataFrame(cug_edges, columns=["src", "dst", edge_attr]),
+            df,
             source="src",
             destination="dst",
             edge_attr=edge_attr,
@@ -160,7 +162,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         name: str,
         v_cols: Set[str],
         e_cols: Set[str],
-        edge_attr: str = "weight",
+        edge_attr: str = "weights",
         **query_options: Any,
     ) -> CUGMultiGraph:
         """Create a cuGraph graph from ArangoDB collections.
@@ -189,7 +191,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         return self.arangodb_to_cugraph(name, metagraph, edge_attr, **query_options)
 
     def arangodb_graph_to_cugraph(
-        self, name: str, edge_attr: str = "weight", **query_options: Any
+        self, name: str, edge_attr: str = "weights", **query_options: Any
     ) -> CUGMultiGraph:
         """Create a cuGraph graph from an ArangoDB graph.
         :param name: The ArangoDB graph name.
@@ -222,7 +224,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         keyify_nodes: bool = False,
         keyify_edges: bool = False,
         overwrite_graph: bool = False,
-        edge_attr: str = "weight",
+        src_series_key: str = "src",
+        dst_series_key: str = "dst",
+        edge_attr: str = "weights",
         **import_options: Any,
     ) -> ADBGraph:
         """Create an ArangoDB graph from a cuGraph graph, and a set of edge
@@ -300,7 +304,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         logger.debug(f"Is graph '{name}' homogeneous? {has_one_vcol and has_one_ecol}")
 
         # Maps cuGraph node IDs to ArangoDB vertex IDs
-        cug_map: Dict[CUGId, Json] = dict()
+        cug_map: Dict[CUGId, str] = dict()
 
         # Stores to-be-inserted ArangoDB documents by collection name
         adb_documents: DefaultDict[str, List[Json]] = defaultdict(list)
@@ -335,35 +339,28 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             self.__cntrl._prepare_cugraph_node(cug_node, col)
             adb_documents[col].append(cug_node)
 
-            cug_map[cug_id] = {
-                "cug_id": cug_id,
-                "adb_id": col + "/" + key,
-                "adb_col": col,
-                "adb_key": key,
-            }
+            cug_map[cug_id] = f"{col}/{key}"
+
 
         self.__insert_adb_docs(adb_documents, import_options)
         adb_documents.clear()  # for memory purposes
 
         from_node_id: CUGId
         to_node_id: CUGId
-        edge_list = cug_graph.view_edge_list()
+        edge_list: DataFrame = cug_graph.view_edge_list()
 
         logger.debug("Preparing cuGraph edges")
         for i in track(range(len(edge_list)), len(edge_list), "Edges", "#5E3108"):
-            from_node_id = edge_list.src[i]
-            to_node_id = edge_list.dst[i]
+            from_node_id = edge_list[src_series_key][i]
+            to_node_id = edge_list[dst_series_key][i]
 
             edge_str = f"({from_node_id}, {to_node_id})"
             logger.debug(f"E{i}: {edge_str}")
 
-            from_n = cug_map[from_node_id]
-            to_n = cug_map[to_node_id]
-
             col = (
                 adb_e_cols[0]
                 if has_one_ecol
-                else self.__cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
+                else self.__cntrl._identify_cugraph_edge(from_node_id, to_node_id, adb_e_cols, cug_map)
             )
 
             if not has_one_ecol and col not in adb_e_cols:
@@ -371,19 +368,19 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                 raise ValueError(msg)
 
             key = (
-                self.__cntrl._keyify_cugraph_edge(from_n, to_n, col)
+                self.__cntrl._keyify_cugraph_edge(from_node_id, to_node_id, col, cug_map)
                 if keyify_edges
                 else str(i)
             )
 
             cug_edge = {
                 "_key": key,
-                "_from": from_n["adb_id"],
-                "_to": to_n["adb_id"],
+                "_from": cug_map[from_node_id],
+                "_to": cug_map[to_node_id],
             }
 
             if cug_graph.is_weighted():
-                cug_edge[edge_attr] = edge_list.weights[i]
+                cug_edge[edge_attr] = edge_list[edge_attr][i]
 
             self.__cntrl._prepare_cugraph_edge(cug_edge, col)
             adb_documents[col].append(cug_edge)
