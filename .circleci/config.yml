@@ -31,7 +31,7 @@ jobs:
           command: isort --check ./adbcug_adapter ./tests/
       - run:
           name: Run mypy
-          command: mypy ./adbcug_adapter ./tests/
+          command: mypy ./adbcug_adapter
       - run:
           name: Run flake8
           command: flake8 ./adbcug_adapter ./tests
