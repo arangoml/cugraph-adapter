@@ -118,7 +118,7 @@ def get_divisibility_graph() -> CUGGraph:
 
     cug_graph = CUGMultiGraph(directed=True)
     cug_graph.from_cudf_edgelist(
-        edges, source="src", destination="dst", edge_attr="quotient", renumber=False
+        edges, source="src", destination="dst", edge_attr="quotient"
     )
 
     return cug_graph
@@ -133,7 +133,7 @@ def get_bipartite_graph() -> CUGGraph:
     )
 
     cug_graph = CUGGraph()
-    cug_graph.from_cudf_edgelist(edges, source="src", destination="dst", renumber=False)
+    cug_graph.from_cudf_edgelist(edges, source="src", destination="dst")
     return cug_graph
 
 
@@ -149,7 +149,7 @@ def get_drivers_graph() -> CUGGraph:
     )
 
     cug_graph = CUGGraph()
-    cug_graph.from_cudf_edgelist(edges, source="src", destination="dst", renumber=False)
+    cug_graph.from_cudf_edgelist(edges, source="src", destination="dst")
     return cug_graph
 
 
@@ -161,7 +161,7 @@ def get_likes_graph() -> CUGGraph:
 
     cug_graph = CUGGraph()
     cug_graph.from_cudf_edgelist(
-        edges, source="src", destination="dst", edge_attr="likes", renumber=False
+        edges, source="src", destination="dst", edge_attr="likes"
     )
     return cug_graph
 
