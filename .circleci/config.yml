@@ -16,3 +16,4 @@ jobs:
       - run: nvidia-smi -L
       - run: python3 --version
       - run: pip3 list
+      - run: pyenv versions
