@@ -1,20 +1,45 @@
 version: 2.1
 
 workflows:
-  my-workflow:
+  python_ci:
     jobs:
-      - hello-world
+      - lint
 
 jobs:
-  hello-world:
+  lint:
     machine:
       image: linux-cuda-11:default
       resource_class: gpu.nvidia.small.multi
     steps:
       - checkout
-      - run: nvidia-smi -L
-      - run: pyenv install 3.10
-      - run: pyenv global 3.10
-      - run: pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
-      - run: pip list
-      - run: python3 -c "import cudf; print(cudf)"
+      - restore_cache:
+          key: pip-and-local-cache
+      - run:
+          name: Setup Python 3.10
+          command: pyenv install 3.10 && pyenv global 3.10
+      - run:
+          name: Install Dependencies
+          command: |
+            pip install --upgrade pip setuptools setuptools-scm wheel
+            pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
+            pip install ".[dev]"
+      - run:
+          name: Run black
+          command: black --check --verbose --diff --color --config=pyproject.toml ./
+      - run:
+          name: Run isort
+          command: isort --check .
+      - run:
+          name: Run mypy
+          command: mypy ./adbcug_adapter ./tests/
+      - run:
+          name: Run flake8
+          command: flake8 adbcug_adapter tests
+      - run:
+          name: Run bandit
+          command: bandit --exclude "./tests/*" -r ./
+      - save_cache:
+          key: pip-and-local-cache
+          paths:
+            - ~/.local
+            -  ~/.cache/pip
