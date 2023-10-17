@@ -1,15 +1,19 @@
 version: 2.1
 
+workflows:
+  my-workflow:
+    jobs:
+      - hello-world
+
 jobs:
   hello-world:
+    machine:
+      image: linux-cuda-12:default
+      resource_class: gpu.nvidia.small.multi
     docker:
       - image: cimg/python:3.10.9
     steps:
       - checkout
       - run: echo "hello world"
-      - run: python --version 
-
-workflows:
-  my-workflow:
-    jobs:
-      - hello-world
+      - run: python --version
+      - run: nvidia-smi
