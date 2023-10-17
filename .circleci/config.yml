@@ -14,4 +14,5 @@ jobs:
       - checkout
       - run: echo "hello world"
       - run: nvidia-smi -L
-      - run: python --version
+      - run: python3 --version
+      - run: pip3 list
