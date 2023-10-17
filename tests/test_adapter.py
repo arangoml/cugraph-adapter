@@ -145,7 +145,7 @@ def test_adb_graph_to_cug(
 
 @pytest.mark.parametrize(
     "adapter, name, cug_g, edge_definitions, orphan_collections, \
-        keyify_nodes, keyify_edges, overwrite_graph, edge_attr, import_options",
+        keyify_nodes, keyify_edges, overwrite_graph, edge_attr, adb_import_kwargs",
     [
         (
             adbcug_adapter,
@@ -207,7 +207,7 @@ def test_cug_to_adb(
     keyify_edges: bool,
     overwrite_graph: bool,
     edge_attr: str,
-    import_options: Dict[str, Any],
+    adb_import_kwargs: Dict[str, Any],
 ) -> None:
     adb_g = adapter.cugraph_to_arangodb(
         name,
@@ -218,7 +218,7 @@ def test_cug_to_adb(
         keyify_edges,
         overwrite_graph,
         edge_attr,
-        **import_options,
+        **adb_import_kwargs,
     )
     assert_arangodb_data(
         adapter,
@@ -321,7 +321,6 @@ def assert_arangodb_data(
 
 
 def assert_cugraph_data(cug_g: CUGMultiGraph, metagraph: ADBMetagraph) -> None:
-
     adb_edge: Json
     df = cug_g.to_pandas_edgelist()
     for col, atribs in metagraph["edgeCollections"].items():

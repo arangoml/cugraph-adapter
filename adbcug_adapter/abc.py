@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from abc import ABC
-from typing import Any, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from arango.graph import Graph as ADBGraph
 from cugraph import Graph as CUGGraph
@@ -19,7 +19,7 @@ class Abstract_ADBCUG_Adapter(ABC):
         self,
         name: str,
         metagraph: ADBMetagraph,
-        **query_options: Any,
+        **adb_export_kwargs: Any,
     ) -> CUGMultiGraph:
         raise NotImplementedError  # pragma: no cover
 
@@ -28,12 +28,12 @@ class Abstract_ADBCUG_Adapter(ABC):
         name: str,
         v_cols: Set[str],
         e_cols: Set[str],
-        **query_options: Any,
+        **adb_export_kwargs: Any,
     ) -> CUGMultiGraph:
         raise NotImplementedError  # pragma: no cover
 
     def arangodb_graph_to_cugraph(
-        self, name: str, **query_options: Any
+        self, name: str, **adb_export_kwargs: Any
     ) -> CUGMultiGraph:
         raise NotImplementedError  # pragma: no cover
 
@@ -43,17 +43,11 @@ class Abstract_ADBCUG_Adapter(ABC):
         cug_graph: CUGGraph,
         edge_definitions: Optional[List[Json]] = None,
         orphan_collections: Optional[List[str]] = None,
-        keyify_nodes: bool = False,
-        keyify_edges: bool = False,
         overwrite_graph: bool = False,
-        **import_options: Any,
+        batch_size: Optional[int] = None,
+        use_async: bool = False,
+        **adb_import_kwargs: Any,
     ) -> ADBGraph:
-        raise NotImplementedError  # pragma: no cover
-
-    def __fetch_adb_docs(self) -> None:
-        raise NotImplementedError  # pragma: no cover
-
-    def __insert_adb_docs(self) -> None:
         raise NotImplementedError  # pragma: no cover
 
 
@@ -65,17 +59,23 @@ class Abstract_ADBCUG_Controller(ABC):
         raise NotImplementedError  # pragma: no cover
 
     def _identify_cugraph_edge(
-        self, from_cug_node: Json, to_cug_node: Json, adb_e_cols: List[str]
+        self,
+        from_cug_id: CUGId,
+        to_cug_id: CUGId,
+        cug_map: Dict[CUGId, str],
+        adb_e_cols: List[str],
     ) -> str:
         raise NotImplementedError  # pragma: no cover
 
-    def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
+    def _keyify_cugraph_node(self, i: int, cug_node_id: CUGId, col: str) -> str:
         raise NotImplementedError  # pragma: no cover
 
     def _keyify_cugraph_edge(
         self,
-        from_cug_node: Json,
-        to_cug_node: Json,
+        i: int,
+        from_cug_id: CUGId,
+        to_cug_id: CUGId,
+        cug_map: Dict[CUGId, str],
         col: str,
     ) -> str:
         raise NotImplementedError  # pragma: no cover
