@@ -17,3 +17,9 @@ jobs:
       - run: python3 --version
       - run: pip3 list
       - run: pyenv versions
+      - run: pyenv install 3.10
+      - run: pyenv global 3.10
+      - run: python --version
+      - run: python3 --version
+      - run: pip list
+      - run: pip3 list
