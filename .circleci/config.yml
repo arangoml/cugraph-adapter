@@ -62,6 +62,7 @@ jobs:
       - run:
           name: Setup Docker
           command: |
+            sudo systemctl start docker
             docker create --name adb -p 8529:8529 -e ARANGO_ROOT_PASSWORD= arangodb/arangodb
             docker start adb
       - run: 
