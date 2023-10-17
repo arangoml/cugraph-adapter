@@ -321,7 +321,6 @@ def assert_arangodb_data(
 
 
 def assert_cugraph_data(cug_g: CUGMultiGraph, metagraph: ADBMetagraph) -> None:
-
     adb_edge: Json
     df = cug_g.to_pandas_edgelist()
     for col, atribs in metagraph["edgeCollections"].items():
