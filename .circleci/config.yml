@@ -12,14 +12,9 @@ jobs:
       resource_class: gpu.nvidia.small.multi
     steps:
       - checkout
-      - run: echo "hello world"
       - run: nvidia-smi -L
-      - run: python3 --version
-      - run: pip3 list
-      - run: pyenv versions
       - run: pyenv install 3.10
       - run: pyenv global 3.10
-      - run: python --version
-      - run: python3 --version
+      - run: pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
       - run: pip list
-      - run: pip3 list
+      - run: python3 -c "import cudf; print(cudf)"
