@@ -322,7 +322,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             name, overwrite_graph, edge_definitions, orphan_collections
         )
 
-        adb_v_cols: List[str] = adb_graph.vertex_collections()  # type: ignore
+        adb_v_cols: List[str] = adb_graph.vertex_collections()
         adb_e_cols: List[str] = [
             c["edge_collection"] for c in adb_graph.edge_definitions()  # type: ignore
         ]
@@ -389,7 +389,11 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         bar_progress = get_bar_progress("(CUG → ADB): Edges", "#5E3108")
         bar_progress_task = bar_progress.add_task("Edges", total=len(cug_edges))
 
-        cug_weights = cug_edges[edge_attr] if cug_graph.is_weighted() else None
+        cug_weights = (
+            cug_edges[edge_attr]
+            if cug_graph.is_weighted() and edge_attr is not None
+            else None
+        )
 
         with Live(Group(bar_progress, spinner_progress)):
             for i in range(len(cug_edges)):

@@ -28,14 +28,14 @@ jobs:
           name: Run black
           command: black --check --verbose --diff --color --config=pyproject.toml ./adbcug_adapter ./tests/
       - run:
-          name: Run isort
-          command: isort --check ./adbcug_adapter ./tests/
-      # - run:
-      #     name: Run mypy
-      #     command: mypy ./adbcug_adapter ./tests
-      - run:
           name: Run flake8
           command: flake8 ./adbcug_adapter ./tests
+      - run:
+          name: Run isort
+          command: isort --check ./adbcug_adapter ./tests/
+      - run:
+          name: Run mypy
+          command: mypy ./adbcug_adapter
       - save_cache:
           key: pip-and-local-cache
           paths:

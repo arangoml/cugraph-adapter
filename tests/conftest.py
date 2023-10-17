@@ -1,10 +1,8 @@
 import logging
-import os
 import subprocess
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List
 
-from adb_cloud_connector import get_temp_credentials
 from arango import ArangoClient
 from arango.database import StandardDatabase
 from cudf import DataFrame
@@ -13,7 +11,7 @@ from cugraph import MultiGraph as CUGMultiGraph
 
 from adbcug_adapter import ADBCUG_Adapter
 from adbcug_adapter.controller import ADBCUG_Controller
-from adbcug_adapter.typings import CUGId, Json
+from adbcug_adapter.typings import CUGId
 
 PROJECT_DIR = Path(__file__).parent.parent
 
@@ -56,7 +54,6 @@ def pytest_configure(config: Any) -> None:
     global adbcug_adapter, bipartite_adbcug_adapter, likes_adbcug_adapter
     adbcug_adapter = ADBCUG_Adapter(db, logging_lvl=logging.DEBUG)
     bipartite_adbcug_adapter = ADBCUG_Adapter(db, Bipartite_ADBCUG_Controller())
-    likes_adbcug_adapter = ADBCUG_Adapter(db, Likes_ADBCUG_Controller())
 
     if db.has_graph("fraud-detection") is False:
         arango_restore(con, "examples/data/fraud_dump")
@@ -138,6 +135,9 @@ def get_bipartite_graph() -> CUGGraph:
 
 
 class Bipartite_ADBCUG_Controller(ADBCUG_Controller):
+    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
+        return str(cug_node_id).split("/")[0]
+
     def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
         return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
 
@@ -164,19 +164,3 @@ def get_likes_graph() -> CUGGraph:
         edges, source="src", destination="dst", edge_attr="likes"
     )
     return cug_graph
-
-
-class Likes_ADBCUG_Controller(ADBCUG_Controller):
-    def _identify_cugraph_edge(
-        self,
-        from_cug_node: Json,
-        to_cug_node: Json,
-        adb_e_cols: List[str],
-        weight: Optional[Any] = None,
-    ) -> str:
-        if weight is True:
-            return "likes"
-        elif weight is False:
-            return "dislikes_intentional_typo_here"
-        else:
-            raise ValueError(f"Unrecognized 'weight' value: {weight}")
