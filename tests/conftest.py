@@ -138,7 +138,7 @@ class Bipartite_ADBCUG_Controller(ADBCUG_Controller):
     def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
         return str(cug_node_id).split("/")[0]
 
-    def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
+    def _keyify_cugraph_node(self, i: int, cug_node_id: CUGId, col: str) -> str:
         return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
 
 

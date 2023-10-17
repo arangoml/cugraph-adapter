@@ -238,8 +238,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :rtype: cugraph.structure.graph_classes.MultiDiGraph
         """
         graph = self.__db.graph(name)
-        v_cols = graph.vertex_collections()
-        e_cols = {e_d["edge_collection"] for e_d in graph.edge_definitions()}
+        v_cols: Set[str] = graph.vertex_collections()  # type: ignore
+        edge_definitions: List[Json] = graph.edge_definitions()  # type: ignore
+        e_cols: Set[str] = {ed["edge_collection"] for ed in edge_definitions}
 
         return self.arangodb_collections_to_cugraph(
             name, v_cols, e_cols, edge_attr, **adb_export_kwargs
@@ -322,9 +323,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             name, overwrite_graph, edge_definitions, orphan_collections
         )
 
-        adb_v_cols: List[str] = adb_graph.vertex_collections()
+        adb_v_cols: List[str] = adb_graph.vertex_collections()  # type: ignore
         adb_e_cols: List[str] = [
-            c["edge_collection"] for c in adb_graph.edge_definitions()  # type: ignore
+            ed["edge_collection"] for ed in adb_graph.edge_definitions()  # type: ignore
         ]
 
         has_one_v_col = len(adb_v_cols) == 1

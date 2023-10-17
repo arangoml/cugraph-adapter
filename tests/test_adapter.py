@@ -247,7 +247,7 @@ def test_nx_to_adb_invalid_collections() -> None:
 
     # Raise ValueError on invalid vertex collection identification
     with pytest.raises(ValueError):
-        custom_adbcug_adapter.cug_to_arangodb("Drivers", cug_g_1, e_d_1)
+        custom_adbcug_adapter.cugraph_to_arangodb("Drivers", cug_g_1, e_d_1)
 
     db.delete_graph("Drivers", ignore_missing=True, drop_collections=True)
     db.delete_graph("Feelings", ignore_missing=True, drop_collections=True)
@@ -323,7 +323,17 @@ def assert_arangodb_data(
 
         assert adb_g.vertex_collection(col).has(key)
 
-    for from_node_id, to_node_id, *weight in cug_g.view_edge_list().values_host:
+    cug_edges = cug_g.view_edge_list()
+    cug_weights = (
+        cug_edges[edge_attr]
+        if cug_g.is_weighted() and edge_attr is not None
+        else None
+    )
+
+    for i in range(len(cug_edges)):
+        from_node_id = cug_edges["src"][i]
+        to_node_id = cug_edges["dst"][i]
+
         col = (
             adb_e_cols[0]
             if has_one_ecol
@@ -341,7 +351,7 @@ def assert_arangodb_data(
 
         assert len(adb_edges) == 1
         if edge_attr:
-            assert adb_edges[0][edge_attr] == weight[0]
+            assert adb_edges[0][edge_attr] == cug_weights[i]
 
 
 def assert_cugraph_data(cug_g: CUGMultiGraph, metagraph: ADBMetagraph) -> None:
