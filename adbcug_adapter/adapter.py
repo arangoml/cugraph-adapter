@@ -155,7 +155,6 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             source="src",
             destination="dst",
             edge_attr=edge_attr,
-            renumber=False,
         )
 
         logger.info(f"Created cuGraph '{name}' Graph")
