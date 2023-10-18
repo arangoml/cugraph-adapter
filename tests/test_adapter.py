@@ -11,8 +11,8 @@ from adbcug_adapter.typings import ADBMetagraph, CUGId, Json
 from .conftest import (
     adbcug_adapter,
     bipartite_adbcug_adapter,
-    divisibility_adbcug_adapter,
     db,
+    divisibility_adbcug_adapter,
     get_bipartite_graph,
     get_divisibility_graph,
     get_drivers_graph,
