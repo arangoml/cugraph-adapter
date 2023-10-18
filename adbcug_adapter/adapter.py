@@ -261,7 +261,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         use_async: bool = False,
         src_series_key: str = "src",
         dst_series_key: str = "dst",
-        edge_attr: str = "weights",
+        edge_attr: Optional[str] = None,
         **adb_import_kwargs: Any,
     ) -> ADBGraph:
         """Create an ArangoDB graph from a cuGraph graph, and a set of edge
@@ -297,7 +297,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :type dst_series_key: str
         :param edge_attr: If your cuGraph graph is weighted, you can specify
             the edge attribute name used to represent your cuGraph edge weight values
-            once transferred into ArangoDB. Defaults to 'weight'.
+            once transferred into ArangoDB. Defaults to None.
         :type edge_attr: str
         :param adb_import_kwargs: Keyword arguments to specify additional
             parameters for ArangoDB document insertion. Full parameter list:
@@ -319,6 +319,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         """
         logger.debug(f"--cugraph_to_arangodb('{name}')--")
 
+        cug_nodes, cug_edges = self.__get_cug_nodes_and_edges(cug_graph, edge_attr)
+
         adb_graph = self.__create_adb_graph(
             name, overwrite_graph, edge_definitions, orphan_collections
         )
@@ -335,7 +337,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         # This maps cuGraph node IDs to ArangoDB vertex IDs
         cug_map: Dict[CUGId, str] = dict()
 
-        # Stores to-be-inserted ArangoDB documents by collection name
+        # This stores the to-be-inserted ArangoDB documents by collection name
         adb_docs: DefaultDict[str, List[Json]] = defaultdict(list)
 
         spinner_progress = get_import_spinner_progress("    ")
@@ -345,8 +347,6 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         #################
 
         cug_id: CUGId
-
-        cug_nodes = cug_graph.nodes().values_host
         node_batch_size = batch_size or len(cug_nodes)
 
         bar_progress = get_bar_progress("(CUG → ADB): Nodes", "#97C423")
@@ -383,18 +383,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         from_node_id: CUGId
         to_node_id: CUGId
-
-        cug_edges: DataFrame = cug_graph.view_edge_list()
         edge_batch_size = batch_size or len(cug_edges)
 
         bar_progress = get_bar_progress("(CUG → ADB): Edges", "#5E3108")
         bar_progress_task = bar_progress.add_task("Edges", total=len(cug_edges))
-
-        cug_weights = (
-            cug_edges[edge_attr]
-            if cug_graph.is_weighted() and edge_attr is not None
-            else None
-        )
 
         with Live(Group(bar_progress, spinner_progress)):
             for i in range(len(cug_edges)):
@@ -413,7 +405,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
                     adb_e_cols,
                     has_one_e_col,
                     edge_attr,
-                    cug_weights,
+                    cug_edges[edge_attr] if edge_attr is not None else None,
                 )
 
                 # 2. Insert batch of edges
@@ -592,6 +584,35 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
     # Private: cuGraph -> ArangoDB #
     #################################
 
+    def __get_cug_nodes_and_edges(
+        self, cug_graph: CUGGraph, edge_attr: Optional[str]
+    ) -> Tuple[Series, DataFrame]:
+        """cuGraph -> ArangoDB: Gets the cuGraph nodes and edges.
+
+        :param cug_graph: The cuGraph graph.
+        :type cug_graph: cugraph.classes.graph.Graph
+        :param edge_attr: The weight attribute name of the cuGraph edges.
+        :type edge_attr: str
+        :return: The cuGraph nodes and edges.
+        :rtype: Tuple[cudf.Series, cudf.DataFrame]
+        :raise ValueError: If edge_attr is not present in the cuGraph edge list.
+            Or if the graph is not weighted but edge_attr is not None.
+        """
+        cug_nodes = cug_graph.nodes().values_host
+        cug_edges: DataFrame = cug_graph.view_edge_list()
+
+        is_weighted = cug_graph.is_weighted()
+
+        if not is_weighted and edge_attr is not None:
+            msg = "An edge_attr was provided, but graph is not weighted"  # noqa: E501
+            raise ValueError(msg)
+
+        if is_weighted and edge_attr not in cug_edges.columns:
+            msg = f"Edge attribute '{edge_attr}' not found in cuGraph edge list"
+            raise ValueError(msg)
+
+        return cug_nodes, cug_edges
+
     def __create_adb_graph(
         self,
         name: str,
@@ -683,8 +704,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         adb_docs: DefaultDict[str, List[Json]],
         adb_e_cols: List[str],
         has_one_e_col: bool,
-        edge_attr: str,
-        cug_weights: Optional[Series] = None,
+        edge_attr: Optional[str],
+        cug_weights: Optional[Series],
     ) -> None:
         """cuGraph -> ArangoDB: Processes a cuGraph edge.
 
@@ -733,7 +754,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         }
 
         if cug_weights is not None:
-            cug_edge[edge_attr] = cug_weights[i]
+            cug_edge[edge_attr] = cug_weights[i].item()  # type:ignore # false positive
 
         self.__cntrl._prepare_cugraph_edge(cug_edge, col)
         adb_docs[col].append(cug_edge)
