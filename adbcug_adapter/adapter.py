@@ -160,7 +160,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
             # 2. Process ArangoDB edges
             self.__process_adb_cursor(
-                "#9C46FF",
+                "#FFFFFF",
                 e_col_cursor,
                 e_col_size,
                 self.__process_adb_edge,
