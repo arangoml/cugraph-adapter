@@ -80,7 +80,7 @@ def arango_restore(connection: Any, path_to_data: str) -> None:
     url = protocol + connection["url"].partition("://")[-1]
 
     subprocess.check_call(
-        f'chmod -R 755 ./tools/arangorestore && ./tools/arangorestore \
+        f'chmod -R 755 ./assets/arangorestore && ./assets/arangorestore \
             -c none --server.endpoint {url} --server.database {connection["dbName"]} \
                 --server.username {connection["username"]} \
                     --server.password "{connection["password"]}" \
@@ -144,6 +144,7 @@ def get_likes_graph() -> CUGGraph:
         edges, source="src", destination="dst", edge_attr="likes"
     )
     return cug_graph
+
 
 class Custom_ADBCUG_Controller(ADBCUG_Controller):
     def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
