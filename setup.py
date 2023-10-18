@@ -14,7 +14,7 @@ setup(
     keywords=["arangodb", "cugraph", "adapter"],
     packages=["adbcug_adapter"],
     include_package_data=True,
-    python_requires=">=3.8",
+    python_requires=">=3.9,<3.11",
     license="Apache Software License",
     install_requires=[
         "python-arango>=7.4.1",
@@ -39,7 +39,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Topic :: Utilities",

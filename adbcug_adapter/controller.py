@@ -33,12 +33,12 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         pass
 
     def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
-        """Given a CuGraph node, and a list of ArangoDB vertex collections defined,
+        """Given a cuGraph node, and a list of ArangoDB vertex collections defined,
         identify which ArangoDB vertex collection **cug_node_id** should belong to.
 
         NOTE: You must override this function if len(**adb_v_cols**) > 1.
 
-        :param cug_node_id: The CuGraph ID of the node.
+        :param cug_node_id: The cuGraph ID of the node.
         :type cug_node_id: adbcug_adapter.typings.CUGId
         :param adb_v_cols: All ArangoDB vertex collections specified
             by the **edge_definitions** parameter of cugraph_to_arangodb()
@@ -73,7 +73,7 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         :type from_node_id: adbcug_adapter.typings.CUGId
         :param to_node_id: The ID of the cuGraph node representing the edge destination.
         :type to_node_id: adbcug_adapter.typings.CUGId
-        :param cug_map: A mapping of CuGraph node ids to ArangoDB vertex ids. You
+        :param cug_map: A mapping of cuGraph node ids to ArangoDB vertex ids. You
             can use this to derive the ArangoDB _from and _to values of the edge.
             i.e, `cug_map[from_node_id]` will give you the ArangoDB _from value,
             and `cug_map[to_node_id]` will give you the ArangoDB _to value.
@@ -118,11 +118,11 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         cug_map: Dict[CUGId, str],
         col: str,
     ) -> str:
-        """Given a CuGraph edge, its collection, and its pair of nodes, derive
+        """Given a cuGraph edge, its collection, and its pair of nodes, derive
         its ArangoDB key.
 
         NOTE #1: You must override this function if you want to create custom ArangoDB
-        _key values for your CuGraph edges.
+        _key values for your cuGraph edges.
 
         NOTE #2: You can use **cug_map** to derive the ArangoDB _from and _to values
         of the edge. i.e, `cug_map[from_node_id]` will give you the ArangoDB _from
@@ -133,13 +133,13 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
 
         :param i: The index of the NetworkX edge in the list of edges.
         :type i: int
-        :param from_node_id: The CuGraph ID of the node representing the edge source.
+        :param from_node_id: The cuGraph ID of the node representing the edge source.
         :type from_node_id: adbcug_adapter.typings.CUGId
-        :param to_node_id: The CuGraph ID of the node representing the edge destination.
+        :param to_node_id: The cuGraph ID of the node representing the edge destination.
         :type to_node_id: adbcug_adapter.typings.CUGId
         :param col: The ArangoDB collection that the cuGraph edge belongs to.
         :type col: str
-        :param cug_map: A mapping of CuGraph node ids to ArangoDB vertex ids. You
+        :param cug_map: A mapping of cuGraph node ids to ArangoDB vertex ids. You
             can use this to derive the ArangoDB _from and _to values of the edge.
             i.e, cug_map[from_node_id] will give you the ArangoDB _from value,
             and cug_map[to_node_id] will give you the ArangoDB _to value.

@@ -4,10 +4,13 @@ workflows:
   python_ci:
     jobs:
       - lint
-      - test
+      - test:
+          matrix:
+            parameters:
+              python_version: ["3.10", "3.9"]
 
-orbs:
-  coveralls: coveralls/coveralls@2.2.1
+# orbs:
+#   coveralls: coveralls/coveralls@2.2.1
 
 jobs:
   lint:
@@ -46,6 +49,9 @@ jobs:
             -  ~/.cache/pip
 
   test:
+    parameters:
+      python_version:
+        type: string
     machine:
       image: linux-cuda-11:default
       resource_class: gpu.nvidia.small.multi
@@ -54,8 +60,10 @@ jobs:
       - restore_cache:
           key: pip-and-local-cache
       - run:
-          name: Setup Python 3.10
-          command: pyenv install 3.10 && pyenv global 3.10
+          name: Setup Python
+          command: |
+            pyenv install << parameters.python_version >>
+            pyenv global << parameters.python_version >>
       - run:
           name: Install Dependencies
           command: |
@@ -70,5 +78,5 @@ jobs:
             docker start adb
       - run: 
           name: Run PyTest
-          command: pytest --cov=adbcug_adapter --cov-report xml --cov-report term-missing -v --color=yes --no-cov-on-fail --code-highlight=yes
-      - coveralls/upload
+          command: pytest --cov=adbcug_adapter --cov-report xml --cov-report term-missing -v --color=yes --no-cov-on-fail --code-highlight=yes --cov-fail-under=75
+      # - coveralls/upload
