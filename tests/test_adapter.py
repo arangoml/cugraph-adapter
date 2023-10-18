@@ -164,7 +164,7 @@ def test_adb_graph_to_cug(
             False,
             None,
             "quotient",
-            {"overwrite": True},
+            {"overwrite": True, "on_duplicate": "replace"},
         ),
         (
             bipartite_adbcug_adapter,
@@ -260,7 +260,9 @@ def test_cug_to_adb_invalid_collections() -> None:
 
     # Raise NotImplementedError on missing edge collection identification
     with pytest.raises(NotImplementedError):
-        adbcug_adapter.cugraph_to_arangodb("Feelings", cug_g_2, e_d_2)
+        adbcug_adapter.cugraph_to_arangodb(
+            "Feelings", cug_g_2, e_d_2, edge_attr="likes"
+        )
 
     db.delete_graph("Feelings", ignore_missing=True, drop_collections=True)
 
@@ -331,6 +333,8 @@ def assert_arangodb_data(
                 from_node_id, to_node_id, cug_map, adb_e_cols
             )
         )
+
+        print(cug_map[from_node_id], cug_map[to_node_id])
 
         adb_edges = adb_g.edge_collection(col).find(
             {
