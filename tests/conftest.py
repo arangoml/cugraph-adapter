@@ -18,7 +18,7 @@ PROJECT_DIR = Path(__file__).parent.parent
 db: StandardDatabase
 adbcug_adapter: ADBCUG_Adapter
 bipartite_adbcug_adapter: ADBCUG_Adapter
-likes_adbcug_adapter: ADBCUG_Adapter
+divisibility_adbcug_adapter: ADBCUG_Adapter
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -51,9 +51,10 @@ def pytest_configure(config: Any) -> None:
         con["dbName"], con["username"], con["password"], verify=True
     )
 
-    global adbcug_adapter, bipartite_adbcug_adapter, likes_adbcug_adapter
+    global adbcug_adapter, bipartite_adbcug_adapter, divisibility_adbcug_adapter
     adbcug_adapter = ADBCUG_Adapter(db, logging_lvl=logging.DEBUG)
-    bipartite_adbcug_adapter = ADBCUG_Adapter(db, Bipartite_ADBCUG_Controller())
+    bipartite_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
+    divisibility_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
 
     if db.has_graph("fraud-detection") is False:
         arango_restore(con, "examples/data/fraud_dump")
@@ -121,14 +122,6 @@ def get_bipartite_graph() -> CUGGraph:
     return cug_graph
 
 
-class Bipartite_ADBCUG_Controller(ADBCUG_Controller):
-    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
-        return str(cug_node_id).split("/")[0]
-
-    def _keyify_cugraph_node(self, i: int, cug_node_id: CUGId, col: str) -> str:
-        return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
-
-
 def get_drivers_graph() -> CUGGraph:
     edges = DataFrame(
         [("P-John", "C-BMW"), ("P-Mark", "C-Audi")],
@@ -151,3 +144,10 @@ def get_likes_graph() -> CUGGraph:
         edges, source="src", destination="dst", edge_attr="likes"
     )
     return cug_graph
+
+class Custom_ADBCUG_Controller(ADBCUG_Controller):
+    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
+        return str(cug_node_id).split("/")[0]
+
+    def _keyify_cugraph_node(self, i: int, cug_node_id: CUGId, col: str) -> str:
+        return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])

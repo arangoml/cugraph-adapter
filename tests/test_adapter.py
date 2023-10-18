@@ -11,6 +11,7 @@ from adbcug_adapter.typings import ADBMetagraph, CUGId, Json
 from .conftest import (
     adbcug_adapter,
     bipartite_adbcug_adapter,
+    divisibility_adbcug_adapter,
     db,
     get_bipartite_graph,
     get_divisibility_graph,
@@ -156,15 +157,21 @@ def test_adb_graph_to_cug(
             {"on_duplicate": "replace"},
         ),
         (
-            adbcug_adapter,
+            divisibility_adbcug_adapter,
             "DivisibilityGraph",
             get_divisibility_graph(),
+            [
+                {
+                    "edge_collection": "is_divisible_by",
+                    "from_vertex_collections": ["numbers"],
+                    "to_vertex_collections": ["numbers"],
+                }
+            ],
             None,
-            None,
-            False,
-            None,
+            True,
+            1,
             "quotient",
-            {"overwrite": True, "on_duplicate": "replace"},
+            {"on_duplicate": "replace"},
         ),
         (
             bipartite_adbcug_adapter,
