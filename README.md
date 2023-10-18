@@ -27,12 +27,13 @@ While offering a similar API and set of graph algorithms to NetworkX, RAPIDS cuG
 
 #### Latest Release
 ```
-conda install -c arangodb adbcug-adapter
+pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
+pip install adbcug-adapter
 ```
 
 #### Current State
 ```
-conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph>=21.12 cudatoolkit>=11.2
+pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
 pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```
 
@@ -69,9 +70,9 @@ cug_g = adbcug_adapter.arangodb_collections_to_cugraph(
 ### cuGraph to ArangoDB
 ```py
 # 2.1: cuGraph Homogeneous graph to ArangoDB
-edges = [("Person/A", "Person/B"), ("Person/B", "Person/C")]
+edges = [("Person/A", "Person/B", 1), ("Person/B", "Person/C", -1)]
 cug_g = cugraph.MultiGraph(directed=True)
-cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst"]), source="src", destination="dst", renumber=False)
+cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst", "weight"]), source="src", destination="dst", edge_attr="weight")
 
 edge_definitions = [
     {
@@ -81,7 +82,7 @@ edge_definitions = [
     }
 ]
 
-adb_g = adbcug_adapter.cugraph_to_arangodb("Knows", cug_g, edge_definitions) # Also try it with `keyify_nodes=True` !
+adb_g = adbcug_adapter.cugraph_to_arangodb("Knows", cug_g, edge_definitions, edge_attr="weight")
 
 # 2.2: cuGraph to ArangoDB with a custom ADBCUG Controller
 class Custom_ADBCUG_Controller(ADBCUG_Controller):
@@ -111,28 +112,7 @@ class Custom_ADBCUG_Controller(ADBCUG_Controller):
 
 adb_g = ADBCUG_Adapter(db, Custom_ADBCUG_Controller()).cugraph_to_arangodb("Knows", cug_g, edge_definitions)
 
-# 2.3: cuGraph Heterogeneous graph to ArangoDB with ArangoDB node IDs
-edges = []
-for i in range(1, 101):
-    for j in range(1, 101):
-        if j % i == 0:
-            # Notice that the cuGraph node IDs are following ArangoDB _id formatting standards (i.e `collection_name/node_key`)
-            edges.append((f"numbers_j/{j}", f"numbers_i/{i}", j / i)) 
-
-cug_g = cugraph.MultiGraph(directed=True)
-cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst", "quotient"]), source="src", destination="dst", edge_attr="quotient", renumber=False)
-
-edge_definitions = [
-    {
-        "edge_collection": "is_divisible_by",
-        "from_vertex_collections": ["numbers_j"],
-        "to_vertex_collections": ["numbers_i"],
-    }
-]
-
-adb_g = adbcug_adapter.cugraph_to_arangodb("Divisibility", cug_g, edge_definitions, keyify_nodes=True)
-
-# 2.4: cuGraph Heterogeneous graph to ArangoDB with non-ArangoDB node IDs
+# 2.3: cuGraph Heterogeneous graph to ArangoDB
 edges = [
    ('student:101', 'lecture:101'), 
    ('student:102', 'lecture:102'), 
