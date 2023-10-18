@@ -285,7 +285,9 @@ def test_cug_to_adb_invalid_collections() -> None:
 
     # Raise ValueError on invalid edge collection identification
     with pytest.raises(ValueError):
-        custom_adbcug_adapter.cugraph_to_arangodb("Feelings", cug_g_2, e_d_2)
+        custom_adbcug_adapter.cugraph_to_arangodb(
+            "Feelings", cug_g_2, e_d_2, edge_attr="likes"
+        )
 
     db.delete_graph("Feelings", ignore_missing=True, drop_collections=True)
 
@@ -334,7 +336,8 @@ def assert_arangodb_data(
             )
         )
 
-        print(cug_map[from_node_id], cug_map[to_node_id])
+        print(from_node_id, cug_map[from_node_id])
+        print(to_node_id, cug_map[to_node_id])
 
         adb_edges = adb_g.edge_collection(col).find(
             {
