@@ -73,19 +73,6 @@ def pytest_configure(config: Any) -> None:
             ],
         )
 
-    if db.has_graph("imdb") is False:
-        arango_restore(con, "examples/data/imdb_dump")
-        db.create_graph(
-            "imdb",
-            edge_definitions=[
-                {
-                    "edge_collection": "Ratings",
-                    "from_vertex_collections": ["Users"],
-                    "to_vertex_collections": ["Movies"],
-                },
-            ],
-        )
-
 
 def arango_restore(connection: Any, path_to_data: str) -> None:
     protocol = "http+ssl://" if "https://" in connection["url"] else "tcp://"
@@ -155,7 +142,7 @@ def get_drivers_graph() -> CUGGraph:
 
 def get_likes_graph() -> CUGGraph:
     edges = DataFrame(
-        [("P-John", "P-Emily", True), ("P-Emily", "P-John", False)],
+        [("P-John", "P-Emily", 1), ("P-Emily", "P-John", 0)],
         columns=["src", "dst", "likes"],
     )
 

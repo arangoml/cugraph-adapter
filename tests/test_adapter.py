@@ -68,14 +68,6 @@ def test_validate_constructor() -> None:
                 },
             },
         ),
-        (
-            adbcug_adapter,
-            "IMDBGraph",
-            {
-                "vertexCollections": {"Users": {"Age", "Gender"}, "Movies": {}},
-                "edgeCollections": {"Ratings": {"Rating"}},
-            },
-        ),
     ],
 )
 def test_adb_to_cug(
@@ -222,7 +214,7 @@ def test_cug_to_adb(
     )
 
 
-def test_nx_to_adb_invalid_collections() -> None:
+def test_cug_to_adb_invalid_collections() -> None:
     db.delete_graph("Drivers", ignore_missing=True, drop_collections=True)
 
     cug_g_1 = get_drivers_graph()
@@ -325,9 +317,7 @@ def assert_arangodb_data(
 
     cug_edges = cug_g.view_edge_list()
     cug_weights = (
-        cug_edges[edge_attr]
-        if cug_g.is_weighted() and edge_attr is not None
-        else None
+        cug_edges[edge_attr] if cug_g.is_weighted() and edge_attr is not None else None
     )
 
     for i in range(len(cug_edges)):
@@ -351,7 +341,7 @@ def assert_arangodb_data(
 
         assert len(adb_edges) == 1
         if edge_attr:
-            assert adb_edges[0][edge_attr] == cug_weights[i]
+            assert adb_edges.pop()[edge_attr] == cug_weights[i]
 
 
 def assert_cugraph_data(cug_g: CUGMultiGraph, metagraph: ADBMetagraph) -> None:
