@@ -343,9 +343,6 @@ def assert_arangodb_data(
             )
         )
 
-        print(from_node_id, cug_map[from_node_id])
-        print(to_node_id, cug_map[to_node_id])
-
         adb_edges = adb_g.edge_collection(col).find(
             {
                 "_from": cug_map[from_node_id],
