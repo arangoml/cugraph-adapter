@@ -19,29 +19,37 @@ jobs:
       resource_class: gpu.nvidia.small.multi
     steps:
       - checkout
+
       - restore_cache:
           key: pip-and-local-cache
+
       - run:
           name: Setup Python 3.10
           command: pyenv install 3.10 && pyenv global 3.10
+
       - run:
           name: Install Dependencies
           command: |
             pip install --upgrade pip setuptools setuptools-scm wheel
             pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
             pip install ".[dev]"
+
       - run:
           name: Run black
           command: black --check --verbose --diff --color --config=pyproject.toml ./adbcug_adapter ./tests/
+
       - run:
           name: Run flake8
           command: flake8 ./adbcug_adapter ./tests
+
       - run:
           name: Run isort
           command: isort --check ./adbcug_adapter ./tests/
+
       - run:
           name: Run mypy
           command: mypy ./adbcug_adapter
+
       - save_cache:
           key: pip-and-local-cache
           paths:
@@ -57,26 +65,32 @@ jobs:
       resource_class: gpu.nvidia.small.multi
     steps:
       - checkout
+
       - restore_cache:
           key: pip-and-local-cache
+
       - run:
           name: Setup Python
           command: |
             pyenv install << parameters.python_version >>
             pyenv global << parameters.python_version >>
+
       - run:
           name: Install Dependencies
           command: |
             pip install --upgrade pip setuptools setuptools-scm wheel
             pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
             pip install ".[dev]"
+
       - run:
           name: Setup Docker
           command: |
             sudo systemctl start docker
             docker create --name adb -p 8529:8529 -e ARANGO_ROOT_PASSWORD= arangodb/arangodb
             docker start adb
+
       - run: 
           name: Run PyTest
           command: pytest --cov=adbcug_adapter --cov-report xml --cov-report term-missing -v --color=yes --no-cov-on-fail --code-highlight=yes --cov-fail-under=75
+
       # - coveralls/upload

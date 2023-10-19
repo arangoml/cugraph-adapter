@@ -3,30 +3,23 @@ on:
   workflow_dispatch:
   release:
     types: [published]
-env:
-  PACKAGE_DIR: adbcug_adapter
-  TESTS_DIR: tests
 jobs:
   release:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
-    name: release
+    name: Release package
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+
       - name: Fetch complete history for all tags and branches
         run: git fetch --prune --unshallow
-      - name: Setup python
-        uses: actions/setup-python@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
-      - name: Install packages
+      - name: Install release packages
         run: pip install setuptools wheel twine setuptools-scm[toml]
-
-      - name: Remove (old) distribution
-        run: rm -rf dist
 
       - name: Build distribution
         run: python setup.py sdist bdist_wheel
@@ -46,9 +39,9 @@ jobs:
   changelog:
     needs: release
     runs-on: ubuntu-latest
-    name: changelog
+    name: Update Changelog
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -60,10 +53,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup python
-        uses: actions/setup-python@v2
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       - name: Install release packages
         run: pip install wheel gitchangelog pystache
