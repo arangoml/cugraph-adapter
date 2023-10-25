@@ -17,7 +17,7 @@ setup(
     python_requires=">=3.9,<3.11",
     license="Apache Software License",
     install_requires=[
-        "python-arango>=7.4.1",
+        "python-arango~=7.6",
         "rich>=12.5.1",
         "setuptools>=42",
     ],
@@ -31,7 +31,6 @@ setup(
             "pytest-cov>=2.0.0",
             "coveralls>=3.3.1",
             "types-setuptools",
-            "adb-cloud-connector",
         ],
     },
     classifiers=[
