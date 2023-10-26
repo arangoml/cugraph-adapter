@@ -56,10 +56,17 @@ adbcug_adapter = ADBCUG_Adapter(db)
 
 ### ArangoDB to cuGraph
 ```py
-# 1.1: ArangoDB to cuGraph via Graph name
+
+#######################
+# 1.1: via Graph name #
+#######################
+
 cug_g = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
 
-# 1.2: ArangoDB to cuGraph via Collection names
+#############################
+# 1.2: via Collection names #
+#############################
+
 cug_g = adbcug_adapter.arangodb_collections_to_cugraph(
     "fraud-detection",
     {"account", "bank", "branch", "Class", "customer"},  #  Vertex collections
@@ -69,7 +76,11 @@ cug_g = adbcug_adapter.arangodb_collections_to_cugraph(
 
 ### cuGraph to ArangoDB
 ```py
-# 2.1: cuGraph Homogeneous graph to ArangoDB
+
+#################################
+# 2.1: with a Homogeneous Graph #
+#################################
+
 edges = [("Person/A", "Person/B", 1), ("Person/B", "Person/C", -1)]
 cug_g = cugraph.MultiGraph(directed=True)
 cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst", "weight"]), source="src", destination="dst", edge_attr="weight")
@@ -84,7 +95,10 @@ edge_definitions = [
 
 adb_g = adbcug_adapter.cugraph_to_arangodb("Knows", cug_g, edge_definitions, edge_attr="weight")
 
-# 2.2: cuGraph to ArangoDB with a custom ADBCUG Controller
+##############################################################
+# 2.2: with a Homogeneous Graph & a custom ADBCUG Controller #
+##############################################################
+
 class Custom_ADBCUG_Controller(ADBCUG_Controller):
     """ArangoDB-cuGraph controller.
 
@@ -112,7 +126,10 @@ class Custom_ADBCUG_Controller(ADBCUG_Controller):
 
 adb_g = ADBCUG_Adapter(db, Custom_ADBCUG_Controller()).cugraph_to_arangodb("Knows", cug_g, edge_definitions)
 
-# 2.3: cuGraph Heterogeneous graph to ArangoDB
+###################################
+# 2.3: with a Heterogeneous Graph #
+###################################
+
 edges = [
    ('student:101', 'lecture:101'), 
    ('student:102', 'lecture:102'), 
@@ -130,7 +147,8 @@ cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst"]), source='
 
 # ...
 
-### Learn how this example is handled in Colab: https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb#scrollTo=nuVoCZQv6oyi
+# Learn how this example is handled in Colab:
+# https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb#scrollTo=nuVoCZQv6oyi
 ```
 
 ##  Development & Testing
