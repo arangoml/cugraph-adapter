@@ -44,19 +44,19 @@ pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```py
 import cudf
 import cugraph
-from arango import ArangoClient # Python-Arango driver
 
+from arango import ArangoClient
 from adbcug_adapter import ADBCUG_Adapter, ADBCUG_Controller
 
-# Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint
-db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="")
+# Connect to ArangoDB
+db = ArangoClient().db()
 
+# Instantiate the adapter
 adbcug_adapter = ADBCUG_Adapter(db)
 ```
 
 ### ArangoDB to cuGraph
 ```py
-
 #######################
 # 1.1: via Graph name #
 #######################
