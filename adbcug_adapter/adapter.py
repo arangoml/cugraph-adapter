@@ -238,8 +238,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :rtype: cugraph.structure.graph_classes.MultiDiGraph
         """
         graph = self.__db.graph(name)
-        v_cols: Set[str] = graph.vertex_collections()  # type: ignore
-        edge_definitions: List[Json] = graph.edge_definitions()  # type: ignore
+        v_cols: Set[str] = graph.vertex_collections()
+        edge_definitions: List[Json] = graph.edge_definitions()
         e_cols: Set[str] = {ed["edge_collection"] for ed in edge_definitions}
 
         return self.arangodb_collections_to_cugraph(
@@ -325,9 +325,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             name, overwrite_graph, edge_definitions, orphan_collections
         )
 
-        adb_v_cols: List[str] = adb_graph.vertex_collections()  # type: ignore
+        adb_v_cols: List[str] = adb_graph.vertex_collections()
         adb_e_cols: List[str] = [
-            ed["edge_collection"] for ed in adb_graph.edge_definitions()  # type: ignore
+            ed["edge_collection"] for ed in adb_graph.edge_definitions()
         ]
 
         has_one_v_col = len(adb_v_cols) == 1
@@ -441,12 +441,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :return: The document cursor along with the total collection size.
         :rtype: Tuple[arango.cursor.Cursor, int]
         """
-        col_size: int = self.__db.collection(col).count()  # type: ignore
+        col_size: int = self.__db.collection(col).count()
 
         with get_export_spinner_progress(f"ADB Export: '{col}' ({col_size})") as p:
             p.add_task(col)
 
-            cursor: Cursor = self.__db.aql.execute(  # type: ignore
+            cursor: Cursor = self.__db.aql.execute(
                 "FOR doc IN @@col RETURN doc",
                 bind_vars={"@col": col},
                 **{**adb_export_kwargs, **{"stream": True}},
@@ -485,12 +485,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         with Live(Group(progress)):
             while not cursor.empty():
-                for doc in cursor.batch():  # type: ignore # false positive
+                for doc in cursor.batch():
                     progress.advance(progress_task_id)
 
                     process_adb_doc(doc, col, adb_map, *args)
 
-                cursor.batch().clear()  # type: ignore # false positive
+                cursor.batch().clear()
                 if cursor.has_more():
                     cursor.fetch()
 
@@ -643,7 +643,7 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         else:
             logger.debug(f"Creating graph {name}")
-            return self.__db.create_graph(  # type: ignore
+            return self.__db.create_graph(
                 name,
                 edge_definitions,
                 orphan_collections,

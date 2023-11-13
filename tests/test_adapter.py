@@ -273,7 +273,7 @@ def test_cug_to_adb_invalid_collections() -> None:
 
     db.delete_graph("Feelings", ignore_missing=True, drop_collections=True)
 
-    class Custom_ADBCUG_Controller(ADBCUG_Controller):
+    class Custom_ADBCUG_Controller_2(ADBCUG_Controller):
         def _identify_cugraph_node(
             self, cug_node_id: CUGId, adb_v_cols: List[str]
         ) -> str:
@@ -288,7 +288,7 @@ def test_cug_to_adb_invalid_collections() -> None:
         ) -> str:
             return "invalid_edge_collection"
 
-    custom_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
+    custom_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller_2())
 
     # Raise ValueError on invalid edge collection identification
     with pytest.raises(ValueError):
