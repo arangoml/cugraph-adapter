@@ -58,7 +58,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
 
         self.__db = db
         self.__async_db = db.begin_async_execution(return_result=False)
-        self.__cntrl = controller
+
+        self.__cntrl: ADBCUG_Controller = controller
+        self.__prepare_adb_vertex_method_is_empty = (
+            controller.__class__._prepare_arangodb_vertex
+            is ADBCUG_Controller._prepare_arangodb_vertex
+        )
 
         logger.info(f"Instantiated ADBCUG_Adapter with database '{db.name}'")
 
@@ -509,11 +514,13 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :param adb_map: Maps ArangoDB vertex IDs to cuGraph node IDs.
         :type adb_map: Dict[str, adbcug_adapter.typings.CUGId]
         """
-        adb_id: str = adb_v["_id"]
-        self.__cntrl._prepare_arangodb_vertex(adb_v, v_col)
-        cug_id: str = adb_v["_id"]
+        if not self.__prepare_adb_vertex_method_is_empty:
+            adb_id: str = adb_v["_id"]
+            self.__cntrl._prepare_arangodb_vertex(adb_v, v_col)
+            cug_id: str = adb_v["_id"]
 
-        adb_map[adb_id] = cug_id
+            if adb_id != cug_id:
+                adb_map[adb_id] = cug_id
 
     def __process_adb_edge(
         self,
@@ -540,8 +547,8 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             if **edge_attr** is not present in the ArangoDB edge. Defaults to 0.
         :type default_edge_attr_value: int
         """
-        from_node_id: CUGId = adb_map[adb_e["_from"]]
-        to_node_id: CUGId = adb_map[adb_e["_to"]]
+        from_node_id: CUGId = adb_map.get(adb_e["_from"], adb_e["_from"])
+        to_node_id: CUGId = adb_map.get(adb_e["_to"], adb_e["_to"])
 
         cug_edges.append(
             (
