@@ -48,7 +48,7 @@ jobs:
 
       - run:
           name: Run mypy
-          command: mypy ./adbcug_adapter
+          command: mypy ./adbcug_adapter ./tests
 
       - save_cache:
           key: pip-and-local-cache
