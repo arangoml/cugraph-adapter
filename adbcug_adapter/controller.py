@@ -20,10 +20,9 @@ class ADBCUG_Controller(Abstract_ADBCUG_Controller):
         """Prepare an ArangoDB vertex before it gets inserted into the cuGraph
         graph.
 
-        Given an ArangoDB vertex, you can modify it before it gets inserted
-        into the cuGraph graph, and/or derive a custom node id for cuGraph
+        Given an ArangoDB vertex, you can derive a custom node id for cuGraph
         to use by updating the "_id" attribute of the vertex (otherwise the
-        vertex's current "_id" value will be used)
+        vertex's current "_id" value will be used).
 
         :param adb_vertex: The ArangoDB vertex object to (optionally) modify.
         :type adb_vertex: adbcug_adapter.typings.Json
