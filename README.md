@@ -1,5 +1,5 @@
 # ArangoDB-cuGraph Adapter
-[![build](https://github.com/arangoml/cugraph-adapter/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/arangoml/cugraph-adapter/actions/workflows/build.yml)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/arangoml/cugraph-adapter/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/arangoml/cugraph-adapter/tree/master)
 [![CodeQL](https://github.com/arangoml/cugraph-adapter/actions/workflows/analyze.yml/badge.svg?branch=master)](https://github.com/arangoml/cugraph-adapter/actions/workflows/analyze.yml)
 [![Coverage Status](https://coveralls.io/repos/github/arangoml/cugraph-adapter/badge.svg?branch=master)](https://coveralls.io/github/arangoml/cugraph-adapter)
 [![Last commit](https://img.shields.io/github/last-commit/arangoml/cugraph-adapter)](https://github.com/arangoml/cugraph-adapter/commits/master)
@@ -7,10 +7,12 @@
 [![Conda version badge](https://img.shields.io/conda/v/arangodb/adbcug-adapter?color=3775A9&style=for-the-badge&logo=pypi&logoColor=FFD43B)](https://anaconda.org/arangodb/adbcug-adapter)
 ![Python version badge](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&label=python&message=3.7%20%7C%203.8%20%7C%203.9)
 
+[![PyPI version badge](https://img.shields.io/pypi/v/adbcug-adapter?color=3775A9&style=for-the-badge&logo=pypi&logoColor=FFD43B)](https://pypi.org/project/adbcug-adapter/)
+[![Python versions badge](https://img.shields.io/pypi/pyversions/adbcug-adapter?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B)](https://pypi.org/project/adbcug-adapter/)
+
 [![License](https://img.shields.io/github/license/arangoml/cugraph-adapter?color=9E2165&style=for-the-badge)](https://github.com/arangoml/cugraph-adapter/blob/master/LICENSE)
 [![Code style: black](https://img.shields.io/static/v1?style=for-the-badge&label=code%20style&message=black&color=black)](https://github.com/psf/black)
-<!-- [![Downloads](https://img.shields.io/conda/dn/arangodb/adbcug-adapter?style=for-the-badge&color=282661&label=Downloads)](https://anaconda.org/arangodb/adbcug-adapter/badges/downloads.svg
-) -->
+[![Downloads](https://img.shields.io/badge/dynamic/json?style=for-the-badge&color=282661&label=Downloads&query=total_downloads&url=https://api.pepy.tech/api/v2/projects/adbcug-adapter)](https://pepy.tech/project/adbcug-adapter)
 
 <a href="https://www.arangodb.com/" rel="arangodb.com">![](https://raw.githubusercontent.com/arangoml/cugraph-adapter/master/examples/assets/logos/ArangoDB_logo.png)</a>
 <a href="https://github.com/rapidsai/cugraph" rel="github.com/rapidsai/cugraph"><img src="https://raw.githubusercontent.com/arangoml/cugraph-adapter/master/examples/assets/logos/rapids_logo.png" width=30% height=30%></a>
@@ -27,12 +29,13 @@ While offering a similar API and set of graph algorithms to NetworkX, RAPIDS cuG
 
 #### Latest Release
 ```
-conda install -c arangodb adbcug-adapter
+pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
+pip install adbcug-adapter
 ```
 
 #### Current State
 ```
-conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph>=21.12 cudatoolkit>=11.2
+pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11
 pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```
 
@@ -43,22 +46,29 @@ pip install git+https://github.com/arangoml/cugraph-adapter.git
 ```py
 import cudf
 import cugraph
-from arango import ArangoClient # Python-Arango driver
 
-from adbcug_adapter import ADBCUG_Adapter
+from arango import ArangoClient
+from adbcug_adapter import ADBCUG_Adapter, ADBCUG_Controller
 
-# Let's assume that the ArangoDB "fraud detection" dataset is imported to this endpoint
-db = ArangoClient(hosts="http://localhost:8529").db("_system", username="root", password="")
+# Connect to ArangoDB
+db = ArangoClient().db()
 
+# Instantiate the adapter
 adbcug_adapter = ADBCUG_Adapter(db)
 ```
 
 ### ArangoDB to cuGraph
 ```py
-# 1.1: ArangoDB to cuGraph via Graph name
+#######################
+# 1.1: via Graph name #
+#######################
+
 cug_g = adbcug_adapter.arangodb_graph_to_cugraph("fraud-detection")
 
-# 1.2: ArangoDB to cuGraph via Collection names
+#############################
+# 1.2: via Collection names #
+#############################
+
 cug_g = adbcug_adapter.arangodb_collections_to_cugraph(
     "fraud-detection",
     {"account", "bank", "branch", "Class", "customer"},  #  Vertex collections
@@ -68,10 +78,14 @@ cug_g = adbcug_adapter.arangodb_collections_to_cugraph(
 
 ### cuGraph to ArangoDB
 ```py
-# 2.1: cuGraph Homogeneous graph to ArangoDB
-edges = [("Person/A", "Person/B"), ("Person/B", "Person/C")]
+
+#################################
+# 2.1: with a Homogeneous Graph #
+#################################
+
+edges = [("Person/A", "Person/B", 1), ("Person/B", "Person/C", -1)]
 cug_g = cugraph.MultiGraph(directed=True)
-cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst"]), source="src", destination="dst", renumber=False)
+cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst", "weight"]), source="src", destination="dst", edge_attr="weight")
 
 edge_definitions = [
     {
@@ -81,30 +95,43 @@ edge_definitions = [
     }
 ]
 
-adb_g = adbcug_adapter.cugraph_to_arangodb("Knows", cug_g, edge_definitions) # Also try it with `keyify_nodes=True` !
+adb_g = adbcug_adapter.cugraph_to_arangodb("Knows", cug_g, edge_definitions, edge_attr="weight")
 
-# 2.2: cuGraph Heterogeneous graph to ArangoDB with ArangoDB node IDs
-edges = []
-for i in range(1, 101):
-    for j in range(1, 101):
-        if j % i == 0:
-            # Notice that the cuGraph node IDs are following ArangoDB _id formatting standards (i.e `collection_name/node_key`)
-            edges.append((f"numbers_j/{j}", f"numbers_i/{i}", j / i)) 
+##############################################################
+# 2.2: with a Homogeneous Graph & a custom ADBCUG Controller #
+##############################################################
 
-cug_g = cugraph.MultiGraph(directed=True)
-cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst", "quotient"]), source="src", destination="dst", edge_attr="quotient", renumber=False)
+class Custom_ADBCUG_Controller(ADBCUG_Controller):
+    """ArangoDB-cuGraph controller.
 
-edge_definitions = [
-    {
-        "edge_collection": "is_divisible_by",
-        "from_vertex_collections": ["numbers_j"],
-        "to_vertex_collections": ["numbers_i"],
-    }
-]
+    Responsible for controlling how nodes & edges are handled when
+    transitioning from ArangoDB to cuGraph & vice-versa.
+    """
 
-adb_g = adbcug_adapter.cugraph_to_arangodb("Divisibility", cug_g, edge_definitions, keyify_nodes=True)
+    def _prepare_cugraph_node(self, cug_node: dict, col: str) -> None:
+        """Prepare a cuGraph node before it gets inserted into the ArangoDB
+        collection **col**.
 
-# 2.3 cuGraph Heterogeneous graph to ArangoDB with non-ArangoDB node IDs
+        :param cug_node: The cuGraph node object to (optionally) modify.
+        :param col: The ArangoDB collection the node belongs to.
+        """
+        cug_node["foo"] = "bar"
+
+    def _prepare_cugraph_edge(self, cug_edge: dict, col: str) -> None:
+        """Prepare a cuGraph edge before it gets inserted into the ArangoDB
+        collection **col**.
+
+        :param cug_edge: The cuGraph edge object to (optionally) modify.
+        :param col: The ArangoDB collection the edge belongs to.
+        """
+        cug_edge["bar"] = "foo"
+
+adb_g = ADBCUG_Adapter(db, Custom_ADBCUG_Controller()).cugraph_to_arangodb("Knows", cug_g, edge_definitions)
+
+###################################
+# 2.3: with a Heterogeneous Graph #
+###################################
+
 edges = [
    ('student:101', 'lecture:101'), 
    ('student:102', 'lecture:102'), 
@@ -120,7 +147,10 @@ edges = [
 cug_g = cugraph.MultiGraph(directed=True)
 cug_g.from_cudf_edgelist(cudf.DataFrame(edges, columns=["src", "dst"]), source='src', destination='dst')
 
-### Learn how this example is handled in Colab: https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb#scrollTo=nuVoCZQv6oyi
+# ...
+
+# Learn how this example is handled in Colab:
+# https://colab.research.google.com/github/arangoml/cugraph-adapter/blob/master/examples/ArangoDB_cuGraph_Adapter.ipynb#scrollTo=nuVoCZQv6oyi
 ```
 
 ##  Development & Testing
@@ -130,8 +160,8 @@ Prerequisite: `arangorestore`, `CUDA-capable GPU`
 1. `git clone https://github.com/arangoml/cugraph-adapter.git`
 2. `cd cugraph-adapter`
 3. (create virtual environment of choice)
-4. `conda install -c rapidsai -c nvidia -c numba -c conda-forge cugraph>=21.12 cudatoolkit>=11.2`
-5. `conda run pip install -e .[dev]`
+4. `pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cugraph-cu11`
+5. `pip install -e .[dev]`
 6. (create an ArangoDB instance with method of choice)
 7. `pytest --url <> --dbName <> --username <> --password <>`
 

@@ -1,16 +1,81 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel",
-]
+requires = ["setuptools>=45", "wheel", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
-[tool.coverage.run]
-omit = [
-    "setup.py",
+[tool.setuptools_scm]
+normalize = true
+
+[project]
+name = "adbcug_adapter"
+description = "Convert ArangoDB graphs to cuGraph & vice-versa."
+keywords=["arangodb", "cugraph", "adapter"]
+readme = "README.md"
+dynamic = ["version"]
+license = {file = "LICENSE"}
+requires-python = ">=3.9,<3.11"
+
+authors = [{name = "Anthony Mahanna", email = "anthony.mahanna@arangodb.com"}]
+
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Utilities",
+    "Typing :: Typed",
 ]
+
+dependencies = [
+    "python-arango~=7.6",
+    "rich>=12.5.1",
+    "setuptools>=42",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black==23.3.0",
+    "flake8==6.0.0",
+    "Flake8-pyproject",
+    "isort==5.12.0",
+    "mypy==1.4.1",
+    "pytest>=6.0.0",
+    "pytest-cov>=2.0.0",
+    "coveralls>=3.3.1",
+    "types-setuptools",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/arangoml/cugraph-adapter"
+
+[tool.setuptools]
+packages = ["adbcug_adapter"]
 
 [tool.pytest.ini_options]
 addopts = "-s -vv"
 minversion = "6.0"
 testpaths = ["tests"]
+
+[tool.coverage.report]
+omit = ["*tests*"]
+
+[tool.coverage.run]
+omit = ["*tests*"]
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503", "E251"]
+exclude = [".git", ".idea", ".*_cache", "dist", "venv"]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+implicit_reexport = true
+scripts_are_modules = true
+follow_imports = "skip"
+disallow_subclassing_any = false
+disallow_untyped_decorators = false

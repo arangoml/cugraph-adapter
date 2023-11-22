@@ -5,18 +5,18 @@ from arango.graph import Graph as ADBGraph
 from cugraph import Graph as CUGGraph
 from cugraph import MultiGraph as CUGMultiGraph
 
-from adbcug_adapter import ADBCUG_Adapter
-from adbcug_adapter.typings import ADBMetagraph, Json
+from adbcug_adapter import ADBCUG_Adapter, ADBCUG_Controller
+from adbcug_adapter.typings import ADBMetagraph, CUGId, Json
 
 from .conftest import (
     adbcug_adapter,
     bipartite_adbcug_adapter,
     db,
+    divisibility_adbcug_adapter,
     get_bipartite_graph,
     get_divisibility_graph,
     get_drivers_graph,
     get_likes_graph,
-    likes_adbcug_adapter,
 )
 
 
@@ -67,14 +67,6 @@ def test_validate_constructor() -> None:
                         "receiver_bank_id",
                     },
                 },
-            },
-        ),
-        (
-            adbcug_adapter,
-            "IMDBGraph",
-            {
-                "vertexCollections": {"Users": {"Age", "Gender"}, "Movies": {}},
-                "edgeCollections": {"Ratings": {"Rating"}},
             },
         ),
     ],
@@ -133,7 +125,7 @@ def test_adb_graph_to_cug(
     v_cols = arango_graph.vertex_collections()
     e_cols = {col["edge_collection"] for col in arango_graph.edge_definitions()}
 
-    cug_g = adapter.arangodb_graph_to_cugraph(name)
+    cug_g = adapter.arangodb_graph_to_cugraph(name, batch_size=10)
     assert_cugraph_data(
         cug_g,
         metagraph={
@@ -145,7 +137,7 @@ def test_adb_graph_to_cug(
 
 @pytest.mark.parametrize(
     "adapter, name, cug_g, edge_definitions, orphan_collections, \
-        keyify_nodes, keyify_edges, overwrite_graph, edge_attr, import_options",
+        overwrite_graph, batch_size, edge_attr, adb_import_kwargs",
     [
         (
             adbcug_adapter,
@@ -159,23 +151,27 @@ def test_adb_graph_to_cug(
                 }
             ],
             None,
-            True,
             False,
-            False,
+            50,
             "quotient",
-            {"batch_size": 100, "on_duplicate": "replace"},
+            {"on_duplicate": "replace"},
         ),
         (
-            adbcug_adapter,
+            divisibility_adbcug_adapter,
             "DivisibilityGraph",
             get_divisibility_graph(),
+            [
+                {
+                    "edge_collection": "is_divisible_by",
+                    "from_vertex_collections": ["numbers"],
+                    "to_vertex_collections": ["numbers"],
+                }
+            ],
             None,
-            None,
-            False,
-            False,
-            False,
+            True,
+            1,
             "quotient",
-            {"overwrite": True},
+            {"on_duplicate": "replace"},
         ),
         (
             bipartite_adbcug_adapter,
@@ -190,9 +186,8 @@ def test_adb_graph_to_cug(
             ],
             None,
             True,
-            False,
-            True,
-            "",
+            1,
+            None,
             {"overwrite": True},
         ),
     ],
@@ -203,34 +198,32 @@ def test_cug_to_adb(
     cug_g: CUGGraph,
     edge_definitions: Optional[List[Json]],
     orphan_collections: Optional[List[str]],
-    keyify_nodes: bool,
-    keyify_edges: bool,
     overwrite_graph: bool,
-    edge_attr: str,
-    import_options: Dict[str, Any],
+    batch_size: int,
+    edge_attr: Optional[str],
+    adb_import_kwargs: Dict[str, Any],
 ) -> None:
     adb_g = adapter.cugraph_to_arangodb(
         name,
         cug_g,
         edge_definitions,
         orphan_collections,
-        keyify_nodes,
-        keyify_edges,
         overwrite_graph,
-        edge_attr,
-        **import_options,
+        batch_size=batch_size,
+        edge_attr=edge_attr,
+        **adb_import_kwargs,
     )
     assert_arangodb_data(
         adapter,
         cug_g,
         adb_g,
-        keyify_nodes,
-        keyify_edges,
         edge_attr,
     )
 
 
 def test_cug_to_adb_invalid_collections() -> None:
+    db.delete_graph("Drivers", ignore_missing=True, drop_collections=True)
+
     cug_g_1 = get_drivers_graph()
     e_d_1 = [
         {
@@ -239,11 +232,24 @@ def test_cug_to_adb_invalid_collections() -> None:
             "to_vertex_collections": ["Car"],
         }
     ]
+    # Raise NotImplementedError on missing vertex collection identification
+    with pytest.raises(NotImplementedError):
+        adbcug_adapter.cugraph_to_arangodb("Drivers", cug_g_1, e_d_1)
+
+    class Custom_ADBCUG_Controller(ADBCUG_Controller):
+        def _identify_cugraph_node(
+            self, cug_node_id: CUGId, adb_v_cols: List[str]
+        ) -> str:
+            return "invalid_vertex_collection"
+
+    custom_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
+
     # Raise ValueError on invalid vertex collection identification
     with pytest.raises(ValueError):
-        adbcug_adapter.cugraph_to_arangodb(
-            "Drivers", cug_g_1, e_d_1, on_duplicate="replace"
-        )
+        custom_adbcug_adapter.cugraph_to_arangodb("Drivers", cug_g_1, e_d_1)
+
+    db.delete_graph("Drivers", ignore_missing=True, drop_collections=True)
+    db.delete_graph("Feelings", ignore_missing=True, drop_collections=True)
 
     cug_g_2 = get_likes_graph()
     e_d_2 = [
@@ -258,20 +264,46 @@ def test_cug_to_adb_invalid_collections() -> None:
             "to_vertex_collections": ["Person"],
         },
     ]
+
+    # Raise NotImplementedError on missing edge collection identification
+    with pytest.raises(NotImplementedError):
+        adbcug_adapter.cugraph_to_arangodb(
+            "Feelings", cug_g_2, e_d_2, edge_attr="likes"
+        )
+
+    db.delete_graph("Feelings", ignore_missing=True, drop_collections=True)
+
+    class Custom_ADBCUG_Controller_2(ADBCUG_Controller):
+        def _identify_cugraph_node(
+            self, cug_node_id: CUGId, adb_v_cols: List[str]
+        ) -> str:
+            return str(cug_node_id).split("/")[0]
+
+        def _identify_cugraph_edge(
+            self,
+            from_node_id: CUGId,
+            to_node_id: CUGId,
+            cug_map: Dict[CUGId, str],
+            adb_e_cols: List[str],
+        ) -> str:
+            return "invalid_edge_collection"
+
+    custom_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller_2())
+
     # Raise ValueError on invalid edge collection identification
     with pytest.raises(ValueError):
-        likes_adbcug_adapter.cugraph_to_arangodb(
-            "Feelings", cug_g_2, e_d_2, on_duplicate="replace"
+        custom_adbcug_adapter.cugraph_to_arangodb(
+            "Feelings", cug_g_2, e_d_2, edge_attr="likes"
         )
+
+    db.delete_graph("Feelings", ignore_missing=True, drop_collections=True)
 
 
 def assert_arangodb_data(
     adapter: ADBCUG_Adapter,
     cug_g: CUGGraph,
     adb_g: ADBGraph,
-    keyify_nodes: bool,
-    keyify_edges: bool,
-    edge_attr: str,
+    edge_attr: Optional[str],
 ) -> None:
     cug_map = dict()
 
@@ -287,37 +319,40 @@ def assert_arangodb_data(
             if has_one_vcol
             else adapter.cntrl._identify_cugraph_node(cug_id, adb_v_cols)
         )
-        key = (
-            adapter.cntrl._keyify_cugraph_node(cug_id, col) if keyify_nodes else str(i)
-        )
+        key = adapter.cntrl._keyify_cugraph_node(i, cug_id, col)
 
-        adb_v_id = col + "/" + key
-        cug_map[cug_id] = {
-            "cug_id": cug_id,
-            "adb_id": adb_v_id,
-            "adb_col": col,
-            "adb_key": key,
-        }
+        adb_v_id = f"{col}/{key}"
+        cug_map[cug_id] = adb_v_id
 
         assert adb_g.vertex_collection(col).has(key)
 
-    for from_node_id, to_node_id, *weight in cug_g.view_edge_list().values_host:
-        from_n = cug_map[from_node_id]
-        to_n = cug_map[to_node_id]
+    cug_edges = cug_g.view_edge_list()
+    cug_weights = (
+        cug_edges[edge_attr] if cug_g.is_weighted() and edge_attr is not None else None
+    )
+
+    for i in range(len(cug_edges)):
+        from_node_id = cug_edges["src"][i]
+        to_node_id = cug_edges["dst"][i]
 
         col = (
             adb_e_cols[0]
             if has_one_ecol
-            else adapter.cntrl._identify_cugraph_edge(from_n, to_n, adb_e_cols)
+            else adapter.cntrl._identify_cugraph_edge(
+                from_node_id, to_node_id, cug_map, adb_e_cols
+            )
         )
+
         adb_edges = adb_g.edge_collection(col).find(
             {
-                "_from": from_n["adb_id"],
-                "_to": to_n["adb_id"],
+                "_from": cug_map[from_node_id],
+                "_to": cug_map[to_node_id],
             }
         )
 
-        assert len(adb_edges) > 0
+        assert len(adb_edges) == 1
+        if edge_attr:
+            assert adb_edges.pop()[edge_attr] == cug_weights[i]
 
 
 def assert_cugraph_data(cug_g: CUGMultiGraph, metagraph: ADBMetagraph) -> None:

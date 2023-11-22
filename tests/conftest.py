@@ -1,10 +1,8 @@
 import logging
-import os
 import subprocess
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List
 
-from adb_cloud_connector import get_temp_credentials
 from arango import ArangoClient
 from arango.database import StandardDatabase
 from cudf import DataFrame
@@ -13,14 +11,14 @@ from cugraph import MultiGraph as CUGMultiGraph
 
 from adbcug_adapter import ADBCUG_Adapter
 from adbcug_adapter.controller import ADBCUG_Controller
-from adbcug_adapter.typings import CUGId, Json
+from adbcug_adapter.typings import CUGId
 
 PROJECT_DIR = Path(__file__).parent.parent
 
 db: StandardDatabase
 adbcug_adapter: ADBCUG_Adapter
 bipartite_adbcug_adapter: ADBCUG_Adapter
-likes_adbcug_adapter: ADBCUG_Adapter
+divisibility_adbcug_adapter: ADBCUG_Adapter
 
 
 def pytest_addoption(parser: Any) -> None:
@@ -53,10 +51,10 @@ def pytest_configure(config: Any) -> None:
         con["dbName"], con["username"], con["password"], verify=True
     )
 
-    global adbcug_adapter, bipartite_adbcug_adapter, likes_adbcug_adapter
+    global adbcug_adapter, bipartite_adbcug_adapter, divisibility_adbcug_adapter
     adbcug_adapter = ADBCUG_Adapter(db, logging_lvl=logging.DEBUG)
-    bipartite_adbcug_adapter = ADBCUG_Adapter(db, Bipartite_ADBCUG_Controller())
-    likes_adbcug_adapter = ADBCUG_Adapter(db, Likes_ADBCUG_Controller())
+    bipartite_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
+    divisibility_adbcug_adapter = ADBCUG_Adapter(db, Custom_ADBCUG_Controller())
 
     if db.has_graph("fraud-detection") is False:
         arango_restore(con, "examples/data/fraud_dump")
@@ -76,26 +74,13 @@ def pytest_configure(config: Any) -> None:
             ],
         )
 
-    if db.has_graph("imdb") is False:
-        arango_restore(con, "examples/data/imdb_dump")
-        db.create_graph(
-            "imdb",
-            edge_definitions=[
-                {
-                    "edge_collection": "Ratings",
-                    "from_vertex_collections": ["Users"],
-                    "to_vertex_collections": ["Movies"],
-                },
-            ],
-        )
-
 
 def arango_restore(connection: Any, path_to_data: str) -> None:
     protocol = "http+ssl://" if "https://" in connection["url"] else "tcp://"
     url = protocol + connection["url"].partition("://")[-1]
 
     subprocess.check_call(
-        f'chmod -R 755 ./tools/arangorestore && ./tools/arangorestore \
+        f'chmod -R 755 ./assets/arangorestore && ./assets/arangorestore \
             -c none --server.endpoint {url} --server.database {connection["dbName"]} \
                 --server.username {connection["username"]} \
                     --server.password "{connection["password"]}" \
@@ -137,11 +122,6 @@ def get_bipartite_graph() -> CUGGraph:
     return cug_graph
 
 
-class Bipartite_ADBCUG_Controller(ADBCUG_Controller):
-    def _keyify_cugraph_node(self, cug_node_id: CUGId, col: str) -> str:
-        return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
-
-
 def get_drivers_graph() -> CUGGraph:
     edges = DataFrame(
         [("P-John", "C-BMW"), ("P-Mark", "C-Audi")],
@@ -155,7 +135,7 @@ def get_drivers_graph() -> CUGGraph:
 
 def get_likes_graph() -> CUGGraph:
     edges = DataFrame(
-        [("P-John", "P-Emily", True), ("P-Emily", "P-John", False)],
+        [("P-John", "P-Emily", 1), ("P-Emily", "P-John", 0)],
         columns=["src", "dst", "likes"],
     )
 
@@ -166,17 +146,9 @@ def get_likes_graph() -> CUGGraph:
     return cug_graph
 
 
-class Likes_ADBCUG_Controller(ADBCUG_Controller):
-    def _identify_cugraph_edge(
-        self,
-        from_cug_node: Json,
-        to_cug_node: Json,
-        adb_e_cols: List[str],
-        weight: Optional[Any] = None,
-    ) -> str:
-        if weight is True:
-            return "likes"
-        elif weight is False:
-            return "dislikes_intentional_typo_here"
-        else:
-            raise ValueError(f"Unrecognized 'weight' value: {weight}")
+class Custom_ADBCUG_Controller(ADBCUG_Controller):
+    def _identify_cugraph_node(self, cug_node_id: CUGId, adb_v_cols: List[str]) -> str:
+        return str(cug_node_id).split("/")[0]
+
+    def _keyify_cugraph_node(self, i: int, cug_node_id: CUGId, col: str) -> str:
+        return self._string_to_arangodb_key_helper(str(cug_node_id).split("/")[1])
