@@ -1,3 +1,166 @@
+## 2.0.0 (2023-11-22)
+
+### Fix
+
+* Setup docker. [Anthony Mahanna]
+
+* README typo. [aMahanna]
+
+### Other
+
+* Housekeeping (#26) [Anthony Mahanna]
+
+  * initial commit
+
+  * new: controller example in README
+
+  * new: `track_adb`, `track_cug`
+
+  * cleanup: progress tracker
+
+  * revive branch with more cleanup
+
+  build workflow will most likely hang due to dead runners
+
+  * temp: use `housekeeping` branch name
+
+  * cleanup notebook
+
+  * cleanup notebook (again)
+
+  * checkpoint
+
+  * checkpoint
+
+  * checkpoint
+
+  * bump
+
+  * remove: imdb dump
+
+  too large for test purposes
+
+  * fix rich color
+
+  * fix tests
+
+  * Update test_adapter.py
+
+  * Update test_adapter.py
+
+  * update tests
+
+  * update notebooks
+
+  * fix arangorestore
+
+  * fix arangorestore (2)
+
+  * fix isort
+
+  * cleanup
+
+  * new: coveralls
+
+  * more cleanup
+
+  * Update README.md
+
+  * bump
+
+  * update notebook
+
+  * cleanup workflows
+
+  * lock python-arango
+
+  * update release action
+
+  * Update README.md
+
+  * Update README.md
+
+  * Update README.md
+
+  * Update README.md
+
+  * migrate to `pyproject.toml`
+
+  * fix lint
+
+  * Update config.yml
+
+  * add `tests` to `mypy`
+
+  * optimize: `__process_adb_vertex`
+
+  * update `prepare_adb_vertex` docstring
+
+* CircleCI setup (#28) [Anthony Mahanna]
+
+  * Add .circleci/config.yml
+
+  * Add .circleci/config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * lock lint packages
+
+  * fix black
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * Update config.yml
+
+  * bump
+
+  * Update conftest.py
+
+  * Update adapter.py
+
+* Temp: docker workaround. [Anthony Mahanna]
+
+* Remove: setup-python `cache` [Anthony Mahanna]
+
+* Attempt fix: #27. [Anthony Mahanna]
+
+  checking if running `pytest` doesn't generate any `import` complaints...
+
+* Cleanup: build.yml & release.yml. [aMahanna]
+
+* Cleanup. [aMahanna]
+
+* Cleanup: `rich` progress. [aMahanna]
+
+* Cleanup: `rich` spinners. [aMahanna]
+
+* Changelog: release 1.1.0 (#25) [github-actions[bot]]
+
+  !gitchangelog
+
+* Optimize collection validation. [aMahanna]
+
+
 ## 1.1.0 (2022-07-22)
 
 ### New
