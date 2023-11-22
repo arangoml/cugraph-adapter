@@ -4,15 +4,13 @@
 [![Coverage Status](https://coveralls.io/repos/github/arangoml/cugraph-adapter/badge.svg?branch=master)](https://coveralls.io/github/arangoml/cugraph-adapter)
 [![Last commit](https://img.shields.io/github/last-commit/arangoml/cugraph-adapter)](https://github.com/arangoml/cugraph-adapter/commits/master)
 
-[![Conda version badge](https://img.shields.io/conda/v/arangodb/adbcug-adapter?color=3775A9&style=for-the-badge&logo=pypi&logoColor=FFD43B)](https://anaconda.org/arangodb/adbcug-adapter)
-![Python version badge](https://img.shields.io/static/v1?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B&label=python&message=3.7%20%7C%203.8%20%7C%203.9)
-
 [![PyPI version badge](https://img.shields.io/pypi/v/adbcug-adapter?color=3775A9&style=for-the-badge&logo=pypi&logoColor=FFD43B)](https://pypi.org/project/adbcug-adapter/)
 [![Python versions badge](https://img.shields.io/pypi/pyversions/adbcug-adapter?color=3776AB&style=for-the-badge&logo=python&logoColor=FFD43B)](https://pypi.org/project/adbcug-adapter/)
 
 [![License](https://img.shields.io/github/license/arangoml/cugraph-adapter?color=9E2165&style=for-the-badge)](https://github.com/arangoml/cugraph-adapter/blob/master/LICENSE)
 [![Code style: black](https://img.shields.io/static/v1?style=for-the-badge&label=code%20style&message=black&color=black)](https://github.com/psf/black)
-[![Downloads](https://img.shields.io/badge/dynamic/json?style=for-the-badge&color=282661&label=Downloads&query=total_downloads&url=https://api.pepy.tech/api/v2/projects/adbcug-adapter)](https://pepy.tech/project/adbcug-adapter)
+[![Downloads](https://img.shields.io/pepy/dt/adbcug-adapter?style=for-the-badge&color=282661
+)](https://pepy.tech/project/adbcug-adapter)
 
 <a href="https://www.arangodb.com/" rel="arangodb.com">![](https://raw.githubusercontent.com/arangoml/cugraph-adapter/master/examples/assets/logos/ArangoDB_logo.png)</a>
 <a href="https://github.com/rapidsai/cugraph" rel="github.com/rapidsai/cugraph"><img src="https://raw.githubusercontent.com/arangoml/cugraph-adapter/master/examples/assets/logos/rapids_logo.png" width=30% height=30%></a>
