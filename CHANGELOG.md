@@ -1,3 +1,16 @@
+## 2.0.1 (2023-11-22)
+
+### Other
+
+* Changelog: release 2.0.0 (#29) [github-actions[bot]]
+
+  !gitchangelog
+
+* Misc: update readme badges. [Anthony Mahanna]
+
+* Misc: update notebook pip install. [Anthony Mahanna]
+
+
 ## 2.0.0 (2023-11-22)
 
 ### Fix
