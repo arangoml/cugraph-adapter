@@ -16,7 +16,7 @@ jobs:
   lint:
     machine:
       image: linux-cuda-11:default
-      resource_class: gpu.nvidia.small.multi
+      resource_class: gpu.nvidia.small
     steps:
       - checkout
 
@@ -62,7 +62,7 @@ jobs:
         type: string
     machine:
       image: linux-cuda-11:default
-      resource_class: gpu.nvidia.small.multi
+      resource_class: gpu.nvidia.small
     steps:
       - checkout
 
