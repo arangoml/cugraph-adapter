@@ -220,7 +220,9 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
             "edgeCollections": {col: set() for col in e_cols},
         }
 
-        return self.arangodb_to_cugraph(name, metagraph, edge_attr, **adb_export_kwargs)
+        return self.arangodb_to_cugraph(
+            name, metagraph, edge_attr, default_edge_attr_value, **adb_export_kwargs
+        )
 
     def arangodb_graph_to_cugraph(
         self,
@@ -252,7 +254,12 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         e_cols: Set[str] = {ed["edge_collection"] for ed in edge_definitions}
 
         return self.arangodb_collections_to_cugraph(
-            name, v_cols, e_cols, edge_attr, **adb_export_kwargs
+            name,
+            v_cols,
+            e_cols,
+            edge_attr,
+            default_edge_attr_value,
+            **adb_export_kwargs,
         )
 
     ###############################
@@ -456,10 +463,10 @@ class ADBCUG_Adapter(Abstract_ADBCUG_Adapter):
         :return: The document cursor along with the total collection size.
         :rtype: Tuple[arango.cursor.Cursor, int]
         """
-        aql_return_value = "{ _id: doc._id"
-        aql_return_value += ", _from: doc._from, _to: doc._to" if is_edge else ""
-        aql_return_value += f", {edge_attr}: doc.{edge_attr}" if edge_attr else ""
-        aql_return_value += "}"
+        keys = ["_id"]
+        keys += ["_from", "_to"] if is_edge else []
+        keys += [edge_attr] if is_edge and edge_attr else []
+        aql_return_value = f"KEEP(doc, {keys})"
 
         col_size: int = self.__db.collection(col).count()
 
